@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>製成品品號申請單 (10碼)</title>
+  <style>
+    :root {
+      --primary-color: #4a90e2;
+      --secondary-color: #f5f7fa;
+      --border-radius: 8px;
+      --padding: 12px;
+      --font-family: 'Helvetica Neue', Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: var(--font-family);
+      background: var(--secondary-color);
+      margin: 0;
+      padding: var(--padding);
+      color: #333;
+    }
+    h2 {
+      margin-bottom: 16px;
+      color: var(--primary-color);
+      font-size: 1.5em;
+      text-align: center;
+    }
+    form {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: var(--border-radius);
+      padding: var(--padding);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    fieldset {
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
+      padding: var(--padding);
+      margin-bottom: 20px;
+    }
+    legend {
+      font-weight: bold;
+      padding: 0 8px;
+      color: var(--primary-color);
+    }
+    .form-group {
+      display: flex;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .form-group label {
+      flex: 1 1 200px;
+      margin-right: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    .form-group input,
+    .form-group select {
+      padding: 8px;
+      margin-top: 6px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1em;
+    }
+    .inline-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 6px;
+    }
+    button {
+      background: var(--primary-color);
+      color: #fff;
+      border: none;
+      border-radius: var(--border-radius);
+      padding: 10px 20px;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #357abd;
+    }
+    .output {
+      font-size: 1.4em;
+      color: #b22222;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 16px;
+    }
+    details {
+      margin-bottom: 20px;
+    }
+    details summary {
+      cursor: pointer;
+      font-weight: bold;
+      color: var(--primary-color);
+      margin-bottom: 8px;
+    }
+    /* Serial Generator Panel */
+    #serialGen {
+      position: fixed;
+      top: var(--padding);
+      right: var(--padding);
+      width: 300px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: var(--border-radius);
+      padding: var(--padding);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      z-index: 1000;
+    }
+    .serial-section { margin-top: 12px; }
+    .serial-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <!-- 流水號產生器 -->
+  <details id="serialGen">
+    <summary>流水號產生器</summary>
+    <div class="form-group">
+      <label>品類
+        <select id="serialCategory">
+          <option value="">-- 請選擇 --</option>
+          <option value="dry">乾糧</option>
+          <option value="turkey">火雞筋</option>
+        </select>
+      </label>
+    </div>
+    <div id="drySection" class="serial-section">
+      <div class="form-group">
+        <label>配方 (前兩碼)
+          <select id="dryPrefix"></select>
+        </label>
+      </div>
+      <div class="form-group">
+        <label>規格 (最後一碼)
+          <select id="drySpec"></select>
+        </label>
+      </div>
+    </div>
+    <div id="turkeySection" class="serial-section">
+      <div class="form-group">
+        <label>大小 / 包裝 / 流水
+          <div class="serial-row">
+            <select id="turkeySize"></select>
+            <select id="turkeyPack"></select>
+            <select id="turkeySeq"></select>
+          </div>
+        </label>
+      </div>
+    </div>
+    <button type="button" id="applySerialBtn">套用至表單</button>
+  </details>
+
+  <h2>製成品品號申請單 (10碼)</h2>
+  <form id="productForm">
+    <!-- 基本資料 -->
+    <fieldset>
+      <legend>基本資料</legend>
+      <div class="form-group">
+        <label>品名
+          <input type="text" id="productName" placeholder="輸入品名" required>
+        </label>
+        <label>規格
+          <input type="text" id="spec" placeholder="例如：85g/包" required>
+        </label>
+        <label>品類
+          <select id="category">
+            <option value="1">1 乾糧</option>
+            <option value="2">2 零食</option>
+            <option value="3">3 罐頭</option>
+            <option value="4">4 餐包</option>
+            <option value="5">5 潔牙骨</option>
+          </select>
+        </label>
+      </div>
+      <div class="form-group">
+        <label>單位
+          <select id="unit"></select>
+        </label>
+        <label id="unitCustomWrap" style="display:none;">
+          自訂單位
+          <input type="text" id="unitCustom" placeholder="輸入單位">
+        </label>
+      </div>
+    </fieldset>
+
+    <!-- 產生品號必備 -->
+    <fieldset>
+      <legend>產生品號必備</legend>
+      <div class="form-group">
+        <label>品牌
+          <select id="brandSelect">
+            <option value="A">A 艾富鮮</option>
+            <option value="C">C 貓戀人</option>
+            <option value="G">G 活力零食</option>
+            <option value="H">H 赫緻</option>
+            <option value="K">K 開心狗</option>
+            <option value="M">M 關鍵時刻</option>
+            <option value="R">R 紅布朗</option>
+            <option value="V">V 每朝活力</option>
+          </select>
+        </label>
+        <label>系列
+          <select id="seriesSelect"></select>
+        </label>
+        <label id="seriesCustomWrap" style="display:none;">
+          自訂系列 (2碼)
+          <input type="text" id="seriesCustom" maxlength="2" placeholder="例如：PR">
+        </label>
+      </div>
+      <div class="form-group">
+        <label>寵物
+          <select id="petSelect">
+            <option value="D">D 犬</option>
+            <option value="C">C 貓</option>
+            <option value="O">O 其他</option>
+          </select>
+        </label>
+        <label>流水號 (3碼)
+          <input type="number" id="serial" min="0" max="999" value="001">
+        </label>
+        <label>主銷國家
+          <select id="countrySelect">
+            <option value="T">T 台灣</option>
+            <option value="A">A 美國</option>
+            <option value="J">J 日本</option>
+            <option value="K">K 韓國</option>
+            <option value="H">H 香港</option>
+            <option value="S">S 新加坡</option>
+            <option value="V">V 越南</option>
+          </select>
+        </label>
+      </div>
+      <div class="form-group">
+        <div>自營 / 經銷</div>
+        <div class="inline-group">
+          <label><input type="radio" name="direct" value="0" checked> 直營</label>
+          <label><input type="radio" name="direct" value="1"> 經銷商</label>
+        </div>
+        <label id="dealerWrap" style="display:none;">
+          經銷商編號
+          <select id="dealerCode">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+          </select>
+        </label>
+      </div>
+    </fieldset>
+
+    <!-- ERP 必填區 -->
+    <details>
+      <summary>ERP 必填區 (點擊展開)</summary>
+      <div class="form-group">
+        <label>會計 / 分類<input type="text" value="1 (300製成品)" disabled></label>
+        <label>主要庫別<input type="text" value="A01 製成品倉" disabled></label>
+      </div>
+      <div class="form-group">
+        <label>銀行 / 品類<input type="text" id="bankCategory" disabled></label>
+        <label>銷售單位<input type="text" id="salesUnit" disabled></label>
+      </div>
+      <div class="form-group">
+        <label>庫存管理<input type="checkbox" checked disabled></label>
+        <label>批號管理<input type="radio" checked disabled> 需要</label>
+      </div>
+      <div class="form-group">
+        <label>有效天數<input type="number" id="shelfLife" disabled></label>
+        <label>複檢天數<input type="number" id="recheckDays" disabled></label>
+      </div>
+      <div class="form-group">
+        <label>品號屬性<input type="text" value="M 製成品倉" disabled></label>
+        <label>低階碼<input type="number" value="99" disabled></label>
+        <label>補貨政策<input type="text" value="L" disabled></label>
+        <label>領料碼<input type="number" value="1" disabled></label>
+      </div>
+    </details>
+
+    <!-- ERP 後補區 -->
+    <details>
+      <summary>ERP 後補區 (點擊展開)</summary>
+      <div class="form-group">
+        <label>條碼<input type="text" id="barcode"></label>
+        <label>產品定價<input type="number" id="price" step="0.01"></label>
+      </div>
+    </details>
+
+    <div style="text-align:center; margin:20px 0;">
+      <button type="button" id="generateBtn">產生品號</button>
+    </div>
+    <p class="output">品號：<span id="itemCode"></span></p>
+  </form>
+
+  <script>
+  (function(){
+    // 靜態對照表
+    const categoryUnits = { '1':['包','其他'], '2':['包','袋','盒','其他'], '3':['盒','其他'], '4':['包','其他'], '5':['包','其他'] };
+    const shelfLifeMap  = {'1':540,'2':720,'3':1080,'4':1080,'5':720};
+    const recheckMap    = {'1':360,'2':540,'3':720,'4':720,'5':540};
+    const defaultSeries = [{code:'PR',label:'PR'}];
+    const seriesMap = {
+    'A':[
+  {code:'WD',label:'WIN無穀鮮肉糧'},
+  {code:'OS',label:'鴕鳥優多'},
+  {code:'AL',label:'鱷魚優多'},
+  {code:'MC',label:'蒸肉罐'},
+  {code:'SC',label:'蒸湯罐'},
+  {code:'PC',label:'益菌罐'},
+  {code:'JD',label:'小春日和乾糧'},
+  {code:'JC',label:'小春日和罐罐'},
+  {code:'JT',label:'小春日和零食'},
+  {code:'HC',label:'H2O機能補水泥罐系列'},
+  {code:'TS',label:'火雞筋條'},
+  {code:'TR',label:'火雞筋甜甜圈'},
+  {code:'TB',label:'火雞筋骨'},
+  {code:'TZ',label:'火雞筋蝴蝶餅'},
+  {code:'TP',label:'火雞筋八字結'},
+  {code:'TA',label:'火雞筋麻花辮'},
+  {code:'CT',label:'雞肉零食'},
+  {code:'DR',label:'火雞筋雞肉甜甜圈'},
+  {code:'DS',label:'火雞筋雞肉條'},
+  {code:'DB',label:'火雞筋雞肉骨'}
+    ],
+    'C':[
+  {code:'MD', label:'低溫風乾糧'},
+  {code:'MC', label:'朕是喵罐頭'},
+  {code:'MT', label:'卵磷脂肉條'}
+    ],
+    'G':[
+  {code:'CR', label:'越南製系列'},
+  {code:'CT', label:'台灣製系列'},
+  {code:'KR', label:'火雞筋系列'},
+  {code:'MR', label:'小包裝系列'},
+  {code:'YR', label:'YR'},
+  {code:'BR', label:'牛肉零食'},
+  {code:'SR', label:'GS系列'},
+  {code:'QR', label:'軟系列'},
+  {code:'LR', label:'量販包'}
+    ],
+    'H':[
+  {code:'SP',label:'單一純肉系列'},
+  {code:'CL',label:'經典饗宴系列'},
+  {code:'PR',label:'美饌系列'},
+  {code:'ZS',label:'佐餐粉'},
+  {code:'MC',label:'純肉餐罐'},
+  {code:'HC',label:'滋補養生餐罐'},
+  {code:'DR',label:'火雞筋雞肉甜甜圈'},
+  {code:'DS',label:'火雞筋雞肉條'},
+  {code:'DB',label:'火雞筋雞肉骨'},
+  {code:'DP',label:'火雞筋雞肉八字'},
+  {code:'DA',label:'火雞筋雞肉麻花'}
+    ],
+    'K':[
+  {code:'MD', label:'低溫風乾糧'},
+  {code:'MC', label:'肉肉罐'},
+  {code:'DT', label:'潔牙骨'},
+  {code:'DQ', label:'軟Q潔牙骨'},
+  {code:'CL', label:'KCL零食系列'}
+    ],
+    'M':[
+  {code:'HD', label:'機能健康糧'},
+  {code:'PD', label:'益生健康糧'},
+  {code:'HC', label:'保健餐罐'},
+  {code:'HT', label:'機能雞肉條'},
+  {code:'HS', label:'保健嚼棒'},
+  {code:'ZD', label:'漢方健康糧'},
+  {code:'ZC', label:'漢方主食罐'},
+  {code:'ZT', label:'漢方養生大補帖'},
+  {code:'ZS', label:'保健嚼棒'}
+    ],
+    'R':[
+  {code:'MD', label:'乾糧'},
+  {code:'MT', label:'滿分零食'}
+    ],
+    'V':[
+  {code:'VD', label:'每朝活力小'},
+  {code:'MD', label:'每朝活力大'},
+  {code:'CR', label:'零食'},
+  {code:'TS', label:'火雞筋條'},
+  {code:'TR', label:'火雞筋甜甜圈'},
+  {code:'TB', label:'火雞筋骨'},
+  {code:'TZ', label:'火雞筋蝴蝶餅'},
+  {code:'TP', label:'火雞筋八字結'},
+  {code:'TA', label:'火雞筋麻花辮'}
+    ]
+  };
+
+    // 流水號對照表
+    const dryOptions = [
+      {val:'01',text:'01 火雞'}, {val:'02',text:'02 羊肉'}, {val:'03',text:'03 鴨肉'},
+      {val:'04',text:'04 牛肉'}, {val:'05',text:'05 鹿肉'}, {val:'06',text:'06 雞肉'}, {val:'07',text:'07 魚肉'}
+    ];
+    const drySpecs   = [
+      {val:'0',text:'0 重1-99克 '}, {val:'1',text:'1 重100-300克'}, {val:'3',text:'3 重301-500克'}, {val:'5',text:'5 重501-1000克'}, {val:'7',text:'7 重1001-2500克'}, {val:'9',text:'9 超過2501克'}
+    ];
+    const turkeySizes= [{val:'1',text:'1 小'},{val:'3',text:'3 中'},{val:'5',text:'5 大'}];
+    const turkeyPacks= [{val:'1',text:'1 單包'},{val:'3',text:'3 袋'},{val:'5',text:'5 吊掛'},{val:'7',text:'7 量販'},{val:'9',text:'9 盒'}];
+    const turkeySeqs = Array.from({length:9},(_,i)=>({val:String(i+1), text:String(i+1)}));
+
+    // DOM 元件
+    const catSel = document.getElementById('category'), unitSel = document.getElementById('unit'), unitCustomWrap = document.getElementById('unitCustomWrap'), unitCustomInput = document.getElementById('unitCustom');
+    const bankCatInput = document.getElementById('bankCategory'), salesUnitInput = document.getElementById('salesUnit'), shelfLifeInput = document.getElementById('shelfLife'), recheckInput = document.getElementById('recheckDays');
+    const brandSel = document.getElementById('brandSelect'), seriesSel = document.getElementById('seriesSelect'), seriesCustomWrap = document.getElementById('seriesCustomWrap'), seriesCustomInput = document.getElementById('seriesCustom');
+    const petSel = document.getElementById('petSelect'), countrySel = document.getElementById('countrySelect');
+    const dealerWrap = document.getElementById('dealerWrap'), dealerCode = document.getElementById('dealerCode');
+    const serialInput = document.getElementById('serial'), itemCodeSpan = document.getElementById('itemCode');
+    const serialCatSel = document.getElementById('serialCategory'), drySection = document.getElementById('drySection'), turkeySection = document.getElementById('turkeySection');
+    const dryPrefix = document.getElementById('dryPrefix'), drySpec = document.getElementById('drySpec');
+    const turkeySize = document.getElementById('turkeySize'), turkeyPack = document.getElementById('turkeyPack'), turkeySeq = document.getElementById('turkeySeq');
+
+    function pad(num,len){ return String(num).padStart(len,'0'); }
+
+    // 單位選單
+    function populateUnits(){
+      const units = categoryUnits[catSel.value] || [];
+      unitSel.innerHTML = units.map(u=>`<option>${u}</option>`).join('');
+      bankCatInput.value = catSel.value + ' ' + catSel.options[catSel.selectedIndex].text.slice(2);
+      shelfLifeInput.value = shelfLifeMap[catSel.value] || '';
+      recheckInput.value = recheckMap[catSel.value] || '';
+      salesUnitInput.value = unitSel.value;
+    }
+    function handleUnitChange(){
+      if(unitSel.value==='其他'){
+        unitCustomWrap.style.display='flex'; salesUnitInput.value = unitCustomInput.value;
+      } else {
+        unitCustomWrap.style.display='none'; salesUnitInput.value = unitSel.value;
+      }
+    }
+
+    // 系列
+    function refreshSeries(){
+      const list = seriesMap[brandSel.value] || defaultSeries;
+      seriesSel.innerHTML = list.map(o=>`<option value="${o.code}">${o.label} (${o.code})</option>`).join('') + '<option value="custom">手動輸入</option>';
+      seriesCustomWrap.style.display='none';
+    }
+
+    // 流水號
+    function initSerial(){
+      dryPrefix.innerHTML  = dryOptions.map(o=>`<option value="${o.val}">${o.text}</option>`).join('');
+      drySpec.innerHTML    = drySpecs.map(o=>`<option value="${o.val}">${o.text}</option>`).join('');
+      turkeySize.innerHTML = turkeySizes.map(o=>`<option value="${o.val}">${o.text}</option>`).join('');
+      turkeyPack.innerHTML = turkeyPacks.map(o=>`<option value="${o.val}">${o.text}</option>`).join('');
+      turkeySeq.innerHTML  = turkeySeqs.map(o=>`<option value="${o.val}">${o.text}</option>`).join('');
+    }
+    function updateSerialValue(){
+      let val='000';
+      if(serialCatSel.value==='dry') val = dryPrefix.value + drySpec.value;
+      else if(serialCatSel.value==='turkey') val = turkeySize.value + turkeyPack.value + turkeySeq.value;
+      serialInput.value = val;
+    }
+
+    // 產生品號
+    function generateCode(){
+      let code = '1' + brandSel.value;
+      const ser = seriesSel.value==='custom'?seriesCustomInput.value.toUpperCase():seriesSel.value;
+      if(ser.length!==2){ alert('系列須為2碼'); return; }
+      code += ser + petSel.value + pad(serialInput.value,3) + countrySel.value + (document.querySelector('input[name="direct"]:checked').value==='1'? dealerCode.value : '0');
+      itemCodeSpan.textContent = code;
+    }
+
+    // 綁定事件
+    catSel.addEventListener('change', populateUnits);
+    unitSel.addEventListener('change', handleUnitChange);
+    unitCustomInput.addEventListener('input', handleUnitChange);
+    brandSel.addEventListener('change', refreshSeries);
+    seriesSel.addEventListener('change', ()=>seriesCustomWrap.style.display = seriesSel.value==='custom'?'flex':'none');
+    document.querySelectorAll('input[name="direct"]').forEach(r=>r.addEventListener('change', ()=>dealerWrap.style.display = r.value==='1'?'flex':'none'));
+    serialCatSel.addEventListener('change', ()=>{ drySection.style.display = serialCatSel.value==='dry'?'block':'none'; turkeySection.style.display = serialCatSel.value==='turkey'?'block':'none'; updateSerialValue(); });
+    [dryPrefix,drySpec,turkeySize,turkeyPack,turkeySeq].forEach(e=>e.addEventListener('change', updateSerialValue));
+    document.getElementById('applySerialBtn').addEventListener('click', ()=>{ updateSerialValue(); alert('流水號已套用！'); });
+    document.getElementById('generateBtn').addEventListener('click', generateCode);
+
+    // 初始化
+    populateUnits();
+    handleUnitChange();
+    refreshSeries();
+    initSerial();
+    updateSerialValue();
+  })();
+  </script>
+</body>
+</html>
