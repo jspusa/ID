@@ -99,27 +99,62 @@
       color: var(--primary-color);
       margin-bottom: 8px;
     }
-    /* Serial Generator Panel */
+    <!-- Serial Generator Panel -->
+    <style>
     #serialGen {
       position: fixed;
       top: var(--padding);
       right: var(--padding);
-      width: 300px;
+      width: auto;                      /* 自動適應 summary */
+      padding: 4px;                     /* 縮小內距 */
       background: #fff;
       border: 1px solid #ccc;
       border-radius: var(--border-radius);
-      padding: var(--padding);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      box-shadow: none;                 /* 關閉時去掉陰影 */
+      transition: width 0.3s ease, padding 0.3s ease;
+      overflow: hidden;                 /* 隱藏內容 */
       z-index: 1000;
     }
+
+    /* 打開時才顯示全尺寸 */
+    #serialGen[open] {
+      width: 300px;
+      padding: var(--padding);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    /* 將 summary 整個往右對齊 */
+    #serialGen summary {
+      position: relative;
+      display: block;
+      text-align: right;                /* 文字+箭頭一起靠右 */
+      padding-right: var(--padding);    /* 留出放箭頭的空間 */
+      list-style: none;                 /* 去掉預設縮排 */
+    }
+    #serialGen summary::-webkit-details-marker {
+      display: none;                    /* 隱藏預設小三角 */
+    }
+    #serialGen summary::after {
+      content: '▾';                      /* 關閉時向下箭頭 */
+      position: absolute;
+      top: 50%;
+      right: var(--padding);
+      transform: translateY(-50%);
+      font-size: 0.8em;
+    }
+    #serialGen[open] summary::after {
+      content: '▴';                      /* 打開時向上箭頭 */
+    }
+
     .serial-section { margin-top: 12px; }
     .serial-row {
       display: flex;
       gap: 8px;
       margin-top: 6px;
     }
-  </style>
-</head>
+    </style>
+  </head>
+
 <body>
   <!-- 流水號產生器 -->
   <details id="serialGen">
