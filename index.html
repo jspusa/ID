@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>製成品品號申請單 (10碼)</title>
+  <!-- SheetJS (xlsx) CDN -->
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
   <style>
     :root {
       --primary-color: #4a90e2;
@@ -79,6 +81,7 @@
       font-size: 1em;
       cursor: pointer;
       transition: background 0.3s;
+      margin-right: 10px;
     }
     button:hover {
       background: #357abd;
@@ -89,6 +92,21 @@
       font-weight: bold;
       text-align: center;
       margin-top: 16px;
+      min-height: 2em;
+    }
+    .msg-tip {
+      color: #27ae60;
+      text-align: right;
+      font-size: 0.95em;
+      padding-right: 16px;
+      margin-bottom: 0;
+    }
+    .msg-err {
+      color: #e74c3c;
+      font-size: 1em;
+      text-align: center;
+      margin-bottom: 0;
+      font-weight: bold;
     }
     details {
       margin-bottom: 20px;
@@ -99,43 +117,37 @@
       color: var(--primary-color);
       margin-bottom: 8px;
     }
-    <!-- Serial Generator Panel -->
-    <style>
     #serialGen {
       position: fixed;
       top: var(--padding);
       right: var(--padding);
-      width: auto;                      /* 自動適應 summary */
-      padding: 4px;                     /* 縮小內距 */
+      width: auto;
+      padding: 4px;
       background: #fff;
       border: 1px solid #ccc;
       border-radius: var(--border-radius);
-      box-shadow: none;                 /* 關閉時去掉陰影 */
+      box-shadow: none;
       transition: width 0.3s ease, padding 0.3s ease;
-      overflow: hidden;                 /* 隱藏內容 */
+      overflow: hidden;
       z-index: 1000;
     }
-
-    /* 打開時才顯示全尺寸 */
     #serialGen[open] {
       width: 300px;
       padding: var(--padding);
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-
-    /* 將 summary 整個往右對齊 */
     #serialGen summary {
       position: relative;
       display: block;
-      text-align: right;                /* 文字+箭頭一起靠右 */
-      padding-right: var(--padding);    /* 留出放箭頭的空間 */
-      list-style: none;                 /* 去掉預設縮排 */
+      text-align: right;
+      padding-right: var(--padding);
+      list-style: none;
     }
     #serialGen summary::-webkit-details-marker {
-      display: none;                    /* 隱藏預設小三角 */
+      display: none;
     }
     #serialGen summary::after {
-      content: '▾';                      /* 關閉時向下箭頭 */
+      content: '▾';
       position: absolute;
       top: 50%;
       right: var(--padding);
@@ -143,18 +155,24 @@
       font-size: 0.8em;
     }
     #serialGen[open] summary::after {
-      content: '▴';                      /* 打開時向上箭頭 */
+      content: '▴';
     }
-
     .serial-section { margin-top: 12px; }
     .serial-row {
       display: flex;
       gap: 8px;
       margin-top: 6px;
     }
-    </style>
-  </head>
-
+    /* Excel 匯出按鈕額外樣式 */
+    #exportBtn {
+      background: #27ae60;
+      margin-right: 0;
+    }
+    #exportBtn:hover {
+      background: #219150;
+    }
+  </style>
+</head>
 <body>
   <!-- 流水號產生器 -->
   <details id="serialGen">
@@ -192,10 +210,11 @@
       </div>
     </div>
     <button type="button" id="applySerialBtn">套用至表單</button>
+    <div class="msg-tip" id="serialTip"></div>
   </details>
 
   <h2>製成品品號申請單 (10碼)</h2>
-  <form id="productForm">
+  <form id="productForm" autocomplete="off">
     <!-- 基本資料 -->
     <fieldset>
       <legend>基本資料</legend>
@@ -260,7 +279,7 @@
           </select>
         </label>
         <label>流水號 (3碼)
-          <input type="number" id="serial" min="0" max="999" value="001">
+          <input type="text" id="serial" maxlength="3" pattern="[0-9]{1,3}" value="001">
         </label>
         <label>主銷國家
           <select id="countrySelect">
@@ -335,8 +354,10 @@
 
     <div style="text-align:center; margin:20px 0;">
       <button type="button" id="generateBtn">產生品號</button>
+      <button type="button" id="exportBtn">導出Excel</button>
     </div>
-    <p class="output">品號：<span id="itemCode"></span></p>
+    <div id="errorMsg" class="msg-err"></div>
+    <p class="output">品號：<span id="itemCode">--</span></p>
   </form>
 
   <script>
@@ -347,104 +368,38 @@
     const recheckMap    = {'1':360,'2':540,'3':720,'4':720,'5':540};
     const defaultSeries = [{code:'PR',label:'PR'}];
     const seriesMap = {
-    'A':[
-  {code:'WD',label:'WIN無穀鮮肉糧'},
-  {code:'OS',label:'鴕鳥優多'},
-  {code:'AL',label:'鱷魚優多'},
-  {code:'MC',label:'蒸肉罐'},
-  {code:'SC',label:'蒸湯罐'},
-  {code:'PC',label:'益菌罐'},
-  {code:'JD',label:'小春日和乾糧'},
-  {code:'JC',label:'小春日和罐罐'},
-  {code:'JT',label:'小春日和零食'},
-  {code:'HC',label:'H2O機能補水泥罐系列'},
-  {code:'TS',label:'火雞筋條'},
-  {code:'TR',label:'火雞筋甜甜圈'},
-  {code:'TB',label:'火雞筋骨'},
-  {code:'TZ',label:'火雞筋蝴蝶餅'},
-  {code:'TP',label:'火雞筋八字結'},
-  {code:'TA',label:'火雞筋麻花辮'},
-  {code:'CT',label:'雞肉零食'},
-  {code:'DR',label:'火雞筋雞肉甜甜圈'},
-  {code:'DS',label:'火雞筋雞肉條'},
-  {code:'DB',label:'火雞筋雞肉骨'}
-    ],
-    'C':[
-  {code:'MD', label:'低溫風乾糧'},
-  {code:'MC', label:'朕是喵罐頭'},
-  {code:'MT', label:'卵磷脂肉條'}
-    ],
-    'G':[
-  {code:'CR', label:'越南製系列'},
-  {code:'CT', label:'台灣製系列'},
-  {code:'KR', label:'火雞筋系列'},
-  {code:'MR', label:'小包裝系列'},
-  {code:'YR', label:'YR'},
-  {code:'BR', label:'牛肉零食'},
-  {code:'SR', label:'GS系列'},
-  {code:'QR', label:'軟系列'},
-  {code:'LR', label:'量販包'}
-    ],
-    'H':[
-  {code:'SP',label:'單一純肉系列'},
-  {code:'CL',label:'經典饗宴系列'},
-  {code:'PR',label:'美饌系列'},
-  {code:'ZS',label:'佐餐粉'},
-  {code:'MC',label:'純肉餐罐'},
-  {code:'HC',label:'滋補養生餐罐'},
-  {code:'DR',label:'火雞筋雞肉甜甜圈'},
-  {code:'DS',label:'火雞筋雞肉條'},
-  {code:'DB',label:'火雞筋雞肉骨'},
-  {code:'DP',label:'火雞筋雞肉八字'},
-  {code:'DA',label:'火雞筋雞肉麻花'}
-    ],
-    'K':[
-  {code:'MD', label:'低溫風乾糧'},
-  {code:'MC', label:'肉肉罐'},
-  {code:'DT', label:'潔牙骨'},
-  {code:'DQ', label:'軟Q潔牙骨'},
-  {code:'CL', label:'KCL零食系列'}
-    ],
-    'M':[
-  {code:'HD', label:'機能健康糧'},
-  {code:'PD', label:'益生健康糧'},
-  {code:'HC', label:'保健餐罐'},
-  {code:'HT', label:'機能雞肉條'},
-  {code:'HS', label:'保健嚼棒'},
-  {code:'ZD', label:'漢方健康糧'},
-  {code:'ZC', label:'漢方主食罐'},
-  {code:'ZT', label:'漢方養生大補帖'},
-  {code:'ZS', label:'保健嚼棒'}
-    ],
-    'R':[
-  {code:'MD', label:'乾糧'},
-  {code:'MT', label:'滿分零食'}
-    ],
-    'V':[
-  {code:'VD', label:'每朝活力小'},
-  {code:'MD', label:'每朝活力大'},
-  {code:'CR', label:'零食'},
-  {code:'TS', label:'火雞筋條'},
-  {code:'TR', label:'火雞筋甜甜圈'},
-  {code:'TB', label:'火雞筋骨'},
-  {code:'TZ', label:'火雞筋蝴蝶餅'},
-  {code:'TP', label:'火雞筋八字結'},
-  {code:'TA', label:'火雞筋麻花辮'}
-    ]
-  };
-
+      'A':[ {code:'WD',label:'WIN無穀鮮肉糧'}, {code:'OS',label:'鴕鳥優多'}, {code:'AL',label:'鱷魚優多'},
+        {code:'MC',label:'蒸肉罐'}, {code:'SC',label:'蒸湯罐'}, {code:'PC',label:'益菌罐'}, {code:'JD',label:'小春日和乾糧'},
+        {code:'JC',label:'小春日和罐罐'}, {code:'JT',label:'小春日和零食'}, {code:'HC',label:'H2O機能補水泥罐系列'},
+        {code:'TS',label:'火雞筋條'}, {code:'TR',label:'火雞筋甜甜圈'}, {code:'TB',label:'火雞筋骨'}, {code:'TZ',label:'火雞筋蝴蝶餅'},
+        {code:'TP',label:'火雞筋八字結'}, {code:'TA',label:'火雞筋麻花辮'}, {code:'CT',label:'雞肉零食'},
+        {code:'DR',label:'火雞筋雞肉甜甜圈'}, {code:'DS',label:'火雞筋雞肉條'}, {code:'DB',label:'火雞筋雞肉骨'}
+      ],
+      'C':[ {code:'MD', label:'低溫風乾糧'},{code:'MC', label:'朕是喵罐頭'},{code:'MT', label:'卵磷脂肉條'} ],
+      'G':[ {code:'CR', label:'越南製系列'},{code:'CT', label:'台灣製系列'},{code:'KR', label:'火雞筋系列'},{code:'MR', label:'小包裝系列'},
+        {code:'YR', label:'YR'},{code:'BR', label:'牛肉零食'},{code:'SR', label:'GS系列'},{code:'QR', label:'軟系列'},{code:'LR', label:'量販包'} ],
+      'H':[ {code:'SP',label:'單一純肉系列'},{code:'CL',label:'經典饗宴系列'},{code:'PR',label:'美饌系列'},{code:'ZS',label:'佐餐粉'},
+        {code:'MC',label:'純肉餐罐'},{code:'HC',label:'滋補養生餐罐'},{code:'DR',label:'火雞筋雞肉甜甜圈'},{code:'DS',label:'火雞筋雞肉條'},
+        {code:'DB',label:'火雞筋雞肉骨'},{code:'DP',label:'火雞筋雞肉八字'},{code:'DA',label:'火雞筋雞肉麻花'} ],
+      'K':[ {code:'MD', label:'低溫風乾糧'},{code:'MC', label:'肉肉罐'},{code:'DT', label:'潔牙骨'},{code:'DQ', label:'軟Q潔牙骨'},{code:'CL', label:'KCL零食系列'} ],
+      'M':[ {code:'HD', label:'機能健康糧'},{code:'PD', label:'益生健康糧'},{code:'HC', label:'保健餐罐'},{code:'HT', label:'機能雞肉條'},
+        {code:'HS', label:'保健嚼棒'},{code:'ZD', label:'漢方健康糧'},{code:'ZC', label:'漢方主食罐'},{code:'ZT', label:'漢方養生大補帖'},{code:'ZS', label:'保健嚼棒'} ],
+      'R':[ {code:'MD', label:'乾糧'},{code:'MT', label:'滿分零食'} ],
+      'V':[ {code:'VD', label:'每朝活力小'},{code:'MD', label:'每朝活力大'},{code:'CR', label:'零食'},{code:'TS', label:'火雞筋條'},
+        {code:'TR', label:'火雞筋甜甜圈'},{code:'TB', label:'火雞筋骨'},{code:'TZ', label:'火雞筋蝴蝶餅'},{code:'TP', label:'火雞筋八字結'},{code:'TA', label:'火雞筋麻花辮'} ]
+    };
     // 流水號對照表
     const dryOptions = [
       {val:'01',text:'01 火雞'}, {val:'02',text:'02 羊肉'}, {val:'03',text:'03 鴨肉'},
       {val:'04',text:'04 牛肉'}, {val:'05',text:'05 鹿肉'}, {val:'06',text:'06 雞肉'}, {val:'07',text:'07 魚肉'}
     ];
     const drySpecs   = [
-      {val:'0',text:'0 重1-99克 '}, {val:'1',text:'1 重100-300克'}, {val:'3',text:'3 重301-500克'}, {val:'5',text:'5 重501-1000克'}, {val:'7',text:'7 重1001-2500克'}, {val:'9',text:'9 超過2501克'}
+      {val:'0',text:'0 重1-99克 '}, {val:'1',text:'1 重100-300克'}, {val:'3',text:'3 重301-500克'},
+      {val:'5',text:'5 重501-1000克'}, {val:'7',text:'7 重1001-2500克'}, {val:'9',text:'9 超過2501克'}
     ];
     const turkeySizes= [{val:'1',text:'1 小'},{val:'3',text:'3 中'},{val:'5',text:'5 大'}];
     const turkeyPacks= [{val:'1',text:'1 單包'},{val:'3',text:'3 袋'},{val:'5',text:'5 吊掛'},{val:'7',text:'7 量販'},{val:'9',text:'9 盒'}];
     const turkeySeqs = Array.from({length:9},(_,i)=>({val:String(i+1), text:String(i+1)}));
-
     // DOM 元件
     const catSel = document.getElementById('category'), unitSel = document.getElementById('unit'), unitCustomWrap = document.getElementById('unitCustomWrap'), unitCustomInput = document.getElementById('unitCustom');
     const bankCatInput = document.getElementById('bankCategory'), salesUnitInput = document.getElementById('salesUnit'), shelfLifeInput = document.getElementById('shelfLife'), recheckInput = document.getElementById('recheckDays');
@@ -455,6 +410,7 @@
     const serialCatSel = document.getElementById('serialCategory'), drySection = document.getElementById('drySection'), turkeySection = document.getElementById('turkeySection');
     const dryPrefix = document.getElementById('dryPrefix'), drySpec = document.getElementById('drySpec');
     const turkeySize = document.getElementById('turkeySize'), turkeyPack = document.getElementById('turkeyPack'), turkeySeq = document.getElementById('turkeySeq');
+    const errorMsg = document.getElementById('errorMsg'), serialTip = document.getElementById('serialTip');
 
     function pad(num,len){ return String(num).padStart(len,'0'); }
 
@@ -478,7 +434,7 @@
     // 系列
     function refreshSeries(){
       const list = seriesMap[brandSel.value] || defaultSeries;
-      seriesSel.innerHTML = list.map(o=>`<option value="${o.code}">${o.label} (${o.code})</option>`).join('') + '<option value="custom">手動輸入</option>';
+      seriesSel.innerHTML = list.map(o=>`<option value="${o.code}">${o.label} (${o.code})</option>`) + '<option value="custom">手動輸入</option>';
       seriesCustomWrap.style.display='none';
     }
 
@@ -494,16 +450,67 @@
       let val='000';
       if(serialCatSel.value==='dry') val = dryPrefix.value + drySpec.value;
       else if(serialCatSel.value==='turkey') val = turkeySize.value + turkeyPack.value + turkeySeq.value;
-      serialInput.value = val;
+      serialInput.value = pad(val,3);
     }
 
     // 產生品號
     function generateCode(){
+      errorMsg.textContent = "";
       let code = '1' + brandSel.value;
       const ser = seriesSel.value==='custom'?seriesCustomInput.value.toUpperCase():seriesSel.value;
-      if(ser.length!==2){ alert('系列須為2碼'); return; }
-      code += ser + petSel.value + pad(serialInput.value,3) + countrySel.value + (document.querySelector('input[name="direct"]:checked').value==='1'? dealerCode.value : '0');
+      if(ser.length!==2){
+        errorMsg.textContent = "系列須為2碼";
+        itemCodeSpan.textContent = "--";
+        return;
+      }
+      let serialVal = pad(serialInput.value,3);
+      if(!/^\d{3}$/.test(serialVal)){
+        errorMsg.textContent = "流水號須為3碼數字";
+        itemCodeSpan.textContent = "--";
+        return;
+      }
+      code += ser + petSel.value + serialVal + countrySel.value + (document.querySelector('input[name="direct"]:checked').value==='1'? dealerCode.value : '0');
       itemCodeSpan.textContent = code;
+    }
+
+    // 導出Excel
+    function exportToExcel(){
+      generateCode(); // 先確保品號最新
+      if(errorMsg.textContent){
+        alert("請先修正錯誤再匯出！");
+        return;
+      }
+      // 整理資料
+      const data = [
+        ["品號", itemCodeSpan.textContent],
+        ["品名", document.getElementById('productName').value],
+        ["規格", document.getElementById('spec').value],
+        ["品類", catSel.options[catSel.selectedIndex].text],
+        ["單位", (unitSel.value==='其他'?unitCustomInput.value:unitSel.value)],
+        ["品牌", brandSel.options[brandSel.selectedIndex].text],
+        ["系列", seriesSel.value==='custom'?seriesCustomInput.value:seriesSel.options[seriesSel.selectedIndex].text],
+        ["寵物", petSel.options[petSel.selectedIndex].text],
+        ["流水號", pad(serialInput.value,3)],
+        ["主銷國家", countrySel.options[countrySel.selectedIndex].text],
+        ["直營/經銷", document.querySelector('input[name="direct"]:checked').value==='0'?'直營':'經銷'],
+        ["經銷商編號", dealerWrap.style.display==='flex'?dealerCode.value:''],
+        ["會計/分類", "1 (300製成品)"],
+        ["主要庫別", "A01 製成品倉"],
+        ["銀行/品類", bankCatInput.value],
+        ["銷售單位", salesUnitInput.value],
+        ["有效天數", shelfLifeInput.value],
+        ["複檢天數", recheckInput.value],
+        ["品號屬性", "M 製成品倉"],
+        ["低階碼", "99"],
+        ["補貨政策", "L"],
+        ["領料碼", "1"],
+        ["條碼", document.getElementById('barcode').value],
+        ["產品定價", document.getElementById('price').value]
+      ];
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "申請單");
+      XLSX.writeFile(wb, "itemcode_申請單.xlsx");
     }
 
     // 綁定事件
@@ -513,10 +520,20 @@
     brandSel.addEventListener('change', refreshSeries);
     seriesSel.addEventListener('change', ()=>seriesCustomWrap.style.display = seriesSel.value==='custom'?'flex':'none');
     document.querySelectorAll('input[name="direct"]').forEach(r=>r.addEventListener('change', ()=>dealerWrap.style.display = r.value==='1'?'flex':'none'));
-    serialCatSel.addEventListener('change', ()=>{ drySection.style.display = serialCatSel.value==='dry'?'block':'none'; turkeySection.style.display = serialCatSel.value==='turkey'?'block':'none'; updateSerialValue(); });
+    serialCatSel.addEventListener('change', ()=>{
+      drySection.style.display = serialCatSel.value==='dry'?'block':'none';
+      turkeySection.style.display = serialCatSel.value==='turkey'?'block':'none';
+      updateSerialValue();
+    });
     [dryPrefix,drySpec,turkeySize,turkeyPack,turkeySeq].forEach(e=>e.addEventListener('change', updateSerialValue));
-    document.getElementById('applySerialBtn').addEventListener('click', ()=>{ updateSerialValue(); alert('流水號已套用！'); });
+    document.getElementById('applySerialBtn').addEventListener('click', ()=>{
+      updateSerialValue();
+      serialTip.textContent = "流水號已套用！";
+      setTimeout(()=>{ serialTip.textContent=""; }, 2000);
+      document.getElementById('serialGen').open = false;
+    });
     document.getElementById('generateBtn').addEventListener('click', generateCode);
+    document.getElementById('exportBtn').addEventListener('click', exportToExcel);
 
     // 初始化
     populateUnits();
