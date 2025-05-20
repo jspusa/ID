@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>製成品品號申請單 (10碼)</title>
-  <!-- SheetJS (xlsx) CDN -->
   <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
   <style>
     :root {
@@ -51,12 +50,14 @@
       display: flex;
       flex-wrap: wrap;
       margin-bottom: 12px;
+      align-items: center;
     }
     .form-group label {
       flex: 1 1 200px;
       margin-right: 16px;
       display: flex;
       flex-direction: column;
+      justify-content: flex-start;
     }
     .form-group input,
     .form-group select {
@@ -69,8 +70,25 @@
     .inline-group {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 24px;
       margin-top: 6px;
+    }
+    .inline-radio-group {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 18px;
+      margin-left: 0;
+      margin-top: 0;
+    }
+    .inline-radio-group label {
+      flex: unset;
+      margin: 0;
+      font-weight: normal;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 4px;
     }
     button {
       background: var(--primary-color);
@@ -117,24 +135,26 @@
       color: var(--primary-color);
       margin-bottom: 8px;
     }
+    /* 流水號產生器右下浮動，不擋主內容 */
     #serialGen {
       position: fixed;
-      top: var(--padding);
+      bottom: var(--padding);
       right: var(--padding);
       width: auto;
+      min-width: 140px;
       padding: 4px;
       background: #fff;
       border: 1px solid #ccc;
       border-radius: var(--border-radius);
       box-shadow: none;
-      transition: width 0.3s ease, padding 0.3s ease;
+      transition: width 0.3s, padding 0.3s, box-shadow 0.3s;
       overflow: hidden;
       z-index: 1000;
     }
     #serialGen[open] {
-      width: 300px;
+      width: 340px;
       padding: var(--padding);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
     }
     #serialGen summary {
       position: relative;
@@ -154,27 +174,48 @@
       transform: translateY(-50%);
       font-size: 0.8em;
     }
-    #serialGen[open] summary::after {
-      content: '▴';
-    }
+    #serialGen[open] summary::after { content: '▴'; }
     .serial-section { margin-top: 12px; }
     .serial-row {
       display: flex;
       gap: 8px;
       margin-top: 6px;
     }
-    /* Excel 匯出按鈕額外樣式 */
     #exportBtn {
       background: #27ae60;
       margin-right: 0;
     }
-    #exportBtn:hover {
-      background: #219150;
+    #exportBtn:hover { background: #219150; }
+    /* 自營/經銷對齊（整行） */
+    .form-group.direct-group {
+      display: grid;
+      grid-template-columns: 90px 1fr 180px;
+      align-items: center;
+      gap: 6px 18px;
+    }
+    .form-group.direct-group > div {
+      grid-column: 1;
+      font-weight: bold;
+      padding-top: 6px;
+    }
+    .form-group.direct-group .inline-radio-group {
+      grid-column: 2;
+    }
+    .form-group.direct-group label[for="dealerCode"] {
+      grid-column: 3;
+      margin-top: 0;
+      min-width: 160px;
+    }
+    @media (max-width: 700px) {
+      #serialGen[open] { width: 98vw; left: 0; right: 0;}
+      form { max-width: 99vw; }
+      .form-group.direct-group { grid-template-columns: 1fr; }
+      .form-group label { min-width: unset; }
     }
   </style>
 </head>
 <body>
-  <!-- 流水號產生器 -->
+  <!-- 流水號產生器（右下角浮動） -->
   <details id="serialGen">
     <summary>流水號產生器</summary>
     <div class="form-group">
@@ -186,7 +227,7 @@
         </select>
       </label>
     </div>
-    <div id="drySection" class="serial-section">
+    <div id="drySection" class="serial-section" style="display:none;">
       <div class="form-group">
         <label>配方 (前兩碼)
           <select id="dryPrefix"></select>
@@ -198,7 +239,7 @@
         </label>
       </div>
     </div>
-    <div id="turkeySection" class="serial-section">
+    <div id="turkeySection" class="serial-section" style="display:none;">
       <div class="form-group">
         <label>大小 / 包裝 / 流水
           <div class="serial-row">
@@ -215,7 +256,6 @@
 
   <h2>製成品品號申請單 (10碼)</h2>
   <form id="productForm" autocomplete="off">
-    <!-- 基本資料 -->
     <fieldset>
       <legend>基本資料</legend>
       <div class="form-group">
@@ -246,7 +286,6 @@
       </div>
     </fieldset>
 
-    <!-- 產生品號必備 -->
     <fieldset>
       <legend>產生品號必備</legend>
       <div class="form-group">
@@ -293,13 +332,14 @@
           </select>
         </label>
       </div>
-      <div class="form-group">
+      <!-- 自營/經銷排列優化 -->
+      <div class="form-group direct-group">
         <div>自營 / 經銷</div>
-        <div class="inline-group">
+        <div class="inline-radio-group">
           <label><input type="radio" name="direct" value="0" checked> 直營</label>
           <label><input type="radio" name="direct" value="1"> 經銷商</label>
         </div>
-        <label id="dealerWrap" style="display:none;">
+        <label for="dealerCode" id="dealerWrap" style="display:none;">
           經銷商編號
           <select id="dealerCode">
             <option value="1">1</option>
@@ -316,7 +356,6 @@
       </div>
     </fieldset>
 
-    <!-- ERP 必填區 -->
     <details>
       <summary>ERP 必填區 (點擊展開)</summary>
       <div class="form-group">
@@ -343,7 +382,6 @@
       </div>
     </details>
 
-    <!-- ERP 後補區 -->
     <details>
       <summary>ERP 後補區 (點擊展開)</summary>
       <div class="form-group">
@@ -362,7 +400,7 @@
 
   <script>
   (function(){
-    // 靜態對照表
+    // 靜態對照表（略，與前述相同...）
     const categoryUnits = { '1':['包','其他'], '2':['包','袋','盒','其他'], '3':['盒','其他'], '4':['包','其他'], '5':['包','其他'] };
     const shelfLifeMap  = {'1':540,'2':720,'3':1080,'4':1080,'5':720};
     const recheckMap    = {'1':360,'2':540,'3':720,'4':720,'5':540};
@@ -388,7 +426,6 @@
       'V':[ {code:'VD', label:'每朝活力小'},{code:'MD', label:'每朝活力大'},{code:'CR', label:'零食'},{code:'TS', label:'火雞筋條'},
         {code:'TR', label:'火雞筋甜甜圈'},{code:'TB', label:'火雞筋骨'},{code:'TZ', label:'火雞筋蝴蝶餅'},{code:'TP', label:'火雞筋八字結'},{code:'TA', label:'火雞筋麻花辮'} ]
     };
-    // 流水號對照表
     const dryOptions = [
       {val:'01',text:'01 火雞'}, {val:'02',text:'02 羊肉'}, {val:'03',text:'03 鴨肉'},
       {val:'04',text:'04 牛肉'}, {val:'05',text:'05 鹿肉'}, {val:'06',text:'06 雞肉'}, {val:'07',text:'07 魚肉'}
@@ -400,7 +437,7 @@
     const turkeySizes= [{val:'1',text:'1 小'},{val:'3',text:'3 中'},{val:'5',text:'5 大'}];
     const turkeyPacks= [{val:'1',text:'1 單包'},{val:'3',text:'3 袋'},{val:'5',text:'5 吊掛'},{val:'7',text:'7 量販'},{val:'9',text:'9 盒'}];
     const turkeySeqs = Array.from({length:9},(_,i)=>({val:String(i+1), text:String(i+1)}));
-    // DOM 元件
+    // DOM
     const catSel = document.getElementById('category'), unitSel = document.getElementById('unit'), unitCustomWrap = document.getElementById('unitCustomWrap'), unitCustomInput = document.getElementById('unitCustom');
     const bankCatInput = document.getElementById('bankCategory'), salesUnitInput = document.getElementById('salesUnit'), shelfLifeInput = document.getElementById('shelfLife'), recheckInput = document.getElementById('recheckDays');
     const brandSel = document.getElementById('brandSelect'), seriesSel = document.getElementById('seriesSelect'), seriesCustomWrap = document.getElementById('seriesCustomWrap'), seriesCustomInput = document.getElementById('seriesCustom');
@@ -411,10 +448,8 @@
     const dryPrefix = document.getElementById('dryPrefix'), drySpec = document.getElementById('drySpec');
     const turkeySize = document.getElementById('turkeySize'), turkeyPack = document.getElementById('turkeyPack'), turkeySeq = document.getElementById('turkeySeq');
     const errorMsg = document.getElementById('errorMsg'), serialTip = document.getElementById('serialTip');
-
     function pad(num,len){ return String(num).padStart(len,'0'); }
 
-    // 單位選單
     function populateUnits(){
       const units = categoryUnits[catSel.value] || [];
       unitSel.innerHTML = units.map(u=>`<option>${u}</option>`).join('');
@@ -430,15 +465,11 @@
         unitCustomWrap.style.display='none'; salesUnitInput.value = unitSel.value;
       }
     }
-
-    // 系列
     function refreshSeries(){
       const list = seriesMap[brandSel.value] || defaultSeries;
       seriesSel.innerHTML = list.map(o=>`<option value="${o.code}">${o.label} (${o.code})</option>`) + '<option value="custom">手動輸入</option>';
       seriesCustomWrap.style.display='none';
     }
-
-    // 流水號
     function initSerial(){
       dryPrefix.innerHTML  = dryOptions.map(o=>`<option value="${o.val}">${o.text}</option>`).join('');
       drySpec.innerHTML    = drySpecs.map(o=>`<option value="${o.val}">${o.text}</option>`).join('');
@@ -452,8 +483,6 @@
       else if(serialCatSel.value==='turkey') val = turkeySize.value + turkeyPack.value + turkeySeq.value;
       serialInput.value = pad(val,3);
     }
-
-    // 產生品號
     function generateCode(){
       errorMsg.textContent = "";
       let code = '1' + brandSel.value;
@@ -472,28 +501,33 @@
       code += ser + petSel.value + serialVal + countrySel.value + (document.querySelector('input[name="direct"]:checked').value==='1'? dealerCode.value : '0');
       itemCodeSpan.textContent = code;
     }
-
-    // 導出Excel
+    // 導出Excel＋美化
     function exportToExcel(){
-      generateCode(); // 先確保品號最新
+      generateCode();
       if(errorMsg.textContent){
         alert("請先修正錯誤再匯出！");
         return;
       }
-      // 整理資料
+      const direct = document.querySelector('input[name="direct"]:checked').value;
+      const dealerVal = direct==='1' ? dealerCode.value : '0';
       const data = [
+        ["基本資料", ""],
         ["品號", itemCodeSpan.textContent],
         ["品名", document.getElementById('productName').value],
         ["規格", document.getElementById('spec').value],
         ["品類", catSel.options[catSel.selectedIndex].text],
         ["單位", (unitSel.value==='其他'?unitCustomInput.value:unitSel.value)],
+        [""],
+        ["品號必備", ""],
         ["品牌", brandSel.options[brandSel.selectedIndex].text],
         ["系列", seriesSel.value==='custom'?seriesCustomInput.value:seriesSel.options[seriesSel.selectedIndex].text],
         ["寵物", petSel.options[petSel.selectedIndex].text],
         ["流水號", pad(serialInput.value,3)],
         ["主銷國家", countrySel.options[countrySel.selectedIndex].text],
-        ["直營/經銷", document.querySelector('input[name="direct"]:checked').value==='0'?'直營':'經銷'],
-        ["經銷商編號", dealerWrap.style.display==='flex'?dealerCode.value:''],
+        ["直營/經銷", direct==='0'?'直營':'經銷'],
+        ["經銷商編號", dealerVal],
+        [""],
+        ["ERP 必填區", ""],
         ["會計/分類", "1 (300製成品)"],
         ["主要庫別", "A01 製成品倉"],
         ["銀行/品類", bankCatInput.value],
@@ -504,15 +538,55 @@
         ["低階碼", "99"],
         ["補貨政策", "L"],
         ["領料碼", "1"],
+        [""],
+        ["ERP 後補區", ""],
         ["條碼", document.getElementById('barcode').value],
         ["產品定價", document.getElementById('price').value]
       ];
+      // 製作表
       const ws = XLSX.utils.aoa_to_sheet(data);
+      // 樣式：標題加粗+底色，欄寬
+      const titleRows = [0,7,16,28];
+      for(let r of titleRows){
+        if(!ws["A"+(r+1)]) continue;
+        ws["A"+(r+1)].s = { font:{bold:true}, fill:{fgColor:{rgb:"F5F5F5"}}, alignment:{horizontal:"left"} };
+        ws["B"+(r+1)] = {t:"s",v:"",s:{fill:{fgColor:{rgb:"F5F5F5"}}}};
+      }
+      // 內容欄寬
+      ws['!cols'] = [{ wch: 18 }, { wch: 40 }];
+      // 凍結
+      ws['!freeze'] = {xSplit:1, ySplit:1};
+      // 外框線條
+      let maxR = data.length;
+      for(let r=0;r<maxR;r++){
+        let addrA = "A"+(r+1), addrB = "B"+(r+1);
+        if(ws[addrA]) ws[addrA].s = Object.assign(ws[addrA].s||{}, {border:{bottom:{style:"thin",color:{rgb:"DDDDDD"}}}});
+        if(ws[addrB]) ws[addrB].s = Object.assign(ws[addrB].s||{}, {border:{bottom:{style:"thin",color:{rgb:"DDDDDD"}}}});
+      }
+      // 組件
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "申請單");
-      XLSX.writeFile(wb, "itemcode_申請單.xlsx");
+      let filename = (itemCodeSpan.textContent!=="--"?itemCodeSpan.textContent:"itemcode") + ".xlsx";
+      XLSX.writeFile(wb, filename);
     }
 
+    // panel展開時，根據品類才展開配方/規格等
+    function handleSerialCatSel(){
+      drySection.style.display = serialCatSel.value==='dry'?'block':'none';
+      turkeySection.style.display = serialCatSel.value==='turkey'?'block':'none';
+      updateSerialValue();
+    }
+    // panel套用，寫回主表單流水號並高亮
+    function applySerialToForm(){
+      updateSerialValue();
+      serialInput.value = pad(serialInput.value,3);
+      serialInput.focus();
+      serialInput.style.background="#fffae6";
+      setTimeout(()=>serialInput.style.background="",800);
+      serialTip.textContent = "流水號已套用！";
+      setTimeout(()=>{ serialTip.textContent=""; }, 1600);
+      document.getElementById('serialGen').open = false;
+    }
     // 綁定事件
     catSel.addEventListener('change', populateUnits);
     unitSel.addEventListener('change', handleUnitChange);
@@ -520,18 +594,9 @@
     brandSel.addEventListener('change', refreshSeries);
     seriesSel.addEventListener('change', ()=>seriesCustomWrap.style.display = seriesSel.value==='custom'?'flex':'none');
     document.querySelectorAll('input[name="direct"]').forEach(r=>r.addEventListener('change', ()=>dealerWrap.style.display = r.value==='1'?'flex':'none'));
-    serialCatSel.addEventListener('change', ()=>{
-      drySection.style.display = serialCatSel.value==='dry'?'block':'none';
-      turkeySection.style.display = serialCatSel.value==='turkey'?'block':'none';
-      updateSerialValue();
-    });
+    serialCatSel.addEventListener('change', handleSerialCatSel);
     [dryPrefix,drySpec,turkeySize,turkeyPack,turkeySeq].forEach(e=>e.addEventListener('change', updateSerialValue));
-    document.getElementById('applySerialBtn').addEventListener('click', ()=>{
-      updateSerialValue();
-      serialTip.textContent = "流水號已套用！";
-      setTimeout(()=>{ serialTip.textContent=""; }, 2000);
-      document.getElementById('serialGen').open = false;
-    });
+    document.getElementById('applySerialBtn').addEventListener('click', applySerialToForm);
     document.getElementById('generateBtn').addEventListener('click', generateCode);
     document.getElementById('exportBtn').addEventListener('click', exportToExcel);
 
@@ -541,6 +606,13 @@
     refreshSeries();
     initSerial();
     updateSerialValue();
+    // 預設panel隱藏下方區塊
+    drySection.style.display = "none";
+    turkeySection.style.display = "none";
+    // panel展開/收合時自動聚焦品類
+    document.getElementById('serialGen').addEventListener('toggle', e=>{
+      if(e.target.open) serialCatSel.focus();
+    });
   })();
   </script>
 </body>
