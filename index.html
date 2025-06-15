@@ -135,7 +135,9 @@
       color: var(--primary-color);
       margin-bottom: 8px;
     }
-    /* 流水號產生器右下浮動，不擋主內容 */
+  </style>
+  <!-- Serial Generator Panel -->
+  <style>
     #serialGen {
       position: fixed;
       bottom: var(--padding);
@@ -400,8 +402,14 @@
 
   <script>
   (function(){
-    // 靜態對照表（略，與前述相同...）
-    const categoryUnits = { '1':['包','其他'], '2':['包','袋','盒','其他'], '3':['盒','其他'], '4':['包','其他'], '5':['包','其他'] };
+    // 靜態對照表
+    const categoryUnits = {
+      '1': ['包', '其他'],
+      '2': ['包', '袋', '盒', '其他'],
+      '3': ['盒', '其他'],
+      '4': ['包', '其他'],
+      '5': ['包', '其他']
+    };
     const shelfLifeMap  = {'1':540,'2':720,'3':1080,'4':1080,'5':720};
     const recheckMap    = {'1':360,'2':540,'3':720,'4':720,'5':540};
     const defaultSeries = [{code:'PR',label:'PR'}];
@@ -427,27 +435,72 @@
         {code:'TR', label:'火雞筋甜甜圈'},{code:'TB', label:'火雞筋骨'},{code:'TZ', label:'火雞筋蝴蝶餅'},{code:'TP', label:'火雞筋八字結'},{code:'TA', label:'火雞筋麻花辮'} ]
     };
     const dryOptions = [
-      {val:'01',text:'01 火雞'}, {val:'02',text:'02 羊肉'}, {val:'03',text:'03 鴨肉'},
-      {val:'04',text:'04 牛肉'}, {val:'05',text:'05 鹿肉'}, {val:'06',text:'06 雞肉'}, {val:'07',text:'07 魚肉'}
+      { val: '01', text: '01 火雞' },
+      { val: '02', text: '02 羊肉' },
+      { val: '03', text: '03 鴨肉' },
+      { val: '04', text: '04 牛肉' },
+      { val: '05', text: '05 鹿肉' },
+      { val: '06', text: '06 雞肉' },
+      { val: '07', text: '07 魚肉' }
     ];
-    const drySpecs   = [
-      {val:'0',text:'0 重1-99克 '}, {val:'1',text:'1 重100-300克'}, {val:'3',text:'3 重301-500克'},
-      {val:'5',text:'5 重501-1000克'}, {val:'7',text:'7 重1001-2500克'}, {val:'9',text:'9 超過2501克'}
+    const drySpecs = [
+      { val: '0', text: '0 重1-99克' },
+      { val: '1', text: '1 重100-300克' },
+      { val: '3', text: '3 重301-500克' },
+      { val: '5', text: '5 重501-1000克' },
+      { val: '7', text: '7 重1001-2500克' },
+      { val: '9', text: '9 超過2501克' }
     ];
-    const turkeySizes= [{val:'1',text:'1 小'},{val:'3',text:'3 中'},{val:'5',text:'5 大'}];
-    const turkeyPacks= [{val:'1',text:'1 單包'},{val:'3',text:'3 袋'},{val:'5',text:'5 吊掛'},{val:'7',text:'7 量販'},{val:'9',text:'9 盒'}];
+    const turkeySizes = [
+      { val: '1', text: '1 小' },
+      { val: '3', text: '3 中' },
+      { val: '5', text: '5 大' }
+    ];
+    const turkeyPacks = [
+      { val: '1', text: '1 單包' },
+      { val: '3', text: '3 袋' },
+      { val: '5', text: '5 吊掛' },
+      { val: '7', text: '7 量販' },
+      { val: '9', text: '9 盒' }
+    ];
     const turkeySeqs = Array.from({length:9},(_,i)=>({val:String(i+1), text:String(i+1)}));
-    // DOM
-    const catSel = document.getElementById('category'), unitSel = document.getElementById('unit'), unitCustomWrap = document.getElementById('unitCustomWrap'), unitCustomInput = document.getElementById('unitCustom');
-    const bankCatInput = document.getElementById('bankCategory'), salesUnitInput = document.getElementById('salesUnit'), shelfLifeInput = document.getElementById('shelfLife'), recheckInput = document.getElementById('recheckDays');
-    const brandSel = document.getElementById('brandSelect'), seriesSel = document.getElementById('seriesSelect'), seriesCustomWrap = document.getElementById('seriesCustomWrap'), seriesCustomInput = document.getElementById('seriesCustom');
-    const petSel = document.getElementById('petSelect'), countrySel = document.getElementById('countrySelect');
-    const dealerWrap = document.getElementById('dealerWrap'), dealerCode = document.getElementById('dealerCode');
-    const serialInput = document.getElementById('serial'), itemCodeSpan = document.getElementById('itemCode');
-    const serialCatSel = document.getElementById('serialCategory'), drySection = document.getElementById('drySection'), turkeySection = document.getElementById('turkeySection');
-    const dryPrefix = document.getElementById('dryPrefix'), drySpec = document.getElementById('drySpec');
-    const turkeySize = document.getElementById('turkeySize'), turkeyPack = document.getElementById('turkeyPack'), turkeySeq = document.getElementById('turkeySeq');
-    const errorMsg = document.getElementById('errorMsg'), serialTip = document.getElementById('serialTip');
+
+    // DOM 元件
+    const catSel = document.getElementById('category');
+    const unitSel = document.getElementById('unit');
+    const unitCustomWrap = document.getElementById('unitCustomWrap');
+    const unitCustomInput = document.getElementById('unitCustom');
+
+    const bankCatInput = document.getElementById('bankCategory');
+    const salesUnitInput = document.getElementById('salesUnit');
+    const shelfLifeInput = document.getElementById('shelfLife');
+    const recheckInput = document.getElementById('recheckDays');
+
+    const brandSel = document.getElementById('brandSelect');
+    const seriesSel = document.getElementById('seriesSelect');
+    const seriesCustomWrap = document.getElementById('seriesCustomWrap');
+    const seriesCustomInput = document.getElementById('seriesCustom');
+
+    const petSel = document.getElementById('petSelect');
+    const countrySel = document.getElementById('countrySelect');
+
+    const dealerWrap = document.getElementById('dealerWrap');
+    const dealerCode = document.getElementById('dealerCode');
+
+    const serialInput = document.getElementById('serial');
+    const itemCodeSpan = document.getElementById('itemCode');
+
+    const serialCatSel = document.getElementById('serialCategory');
+    const drySection = document.getElementById('drySection');
+    const turkeySection = document.getElementById('turkeySection');
+
+    const dryPrefix = document.getElementById('dryPrefix');
+    const drySpec = document.getElementById('drySpec');
+
+    const turkeySize = document.getElementById('turkeySize');
+    const turkeyPack = document.getElementById('turkeyPack');
+    const turkeySeq = document.getElementById('turkeySeq');
+
     function pad(num,len){ return String(num).padStart(len,'0'); }
 
     function populateUnits(){
