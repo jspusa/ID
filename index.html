@@ -67,6 +67,10 @@
       border-radius: 4px;
       font-size: 1em;
     }
+    .form-group label.full-width {
+      flex: 1 1 100%;
+      margin-right: 0;
+    }
     .inline-group {
       display: flex;
       align-items: center;
@@ -261,9 +265,11 @@
     <fieldset>
       <legend>基本資料</legend>
       <div class="form-group">
-        <label>品名
+        <label class="full-width">品名
           <input type="text" id="productName" placeholder="輸入品名" required>
         </label>
+      </div>
+      <div class="form-group">
         <label>規格
           <input type="text" id="spec" placeholder="例如：85g/包" required>
         </label>
@@ -276,8 +282,6 @@
             <option value="5">5 潔牙骨</option>
           </select>
         </label>
-      </div>
-      <div class="form-group">
         <label>單位
           <select id="unit"></select>
         </label>
