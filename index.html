@@ -686,7 +686,6 @@
     }
     function generateCode(){
       errorMsg.textContent = "";
-      let code = '1' + brandSel.value;
       const ser = seriesSel.value==='custom'?seriesCustomInput.value.toUpperCase():seriesSel.value;
       if(ser.length!==2){
         errorMsg.textContent = "系列須為2碼";
@@ -701,6 +700,8 @@
       }
       const productType = document.querySelector('input[name="productType"]:checked');
       const typeValue = productType ? productType.value : 'finished';
+      const prefix = typeValue === 'outsourced' ? '7' : '1';
+      let code = prefix + brandSel.value;
       code += ser + petSel.value + serialVal;
       if(typeValue === 'outsourced'){
         code += factoryCode.value + countrySel.value;
