@@ -263,6 +263,16 @@
   <h2>製成品品號申請單 (10碼)</h2>
   <form id="productForm" autocomplete="off">
     <fieldset>
+      <legend>品項類型</legend>
+      <div class="form-group">
+        <div class="inline-radio-group">
+          <label><input type="radio" name="productType" value="finished" checked> 製成品</label>
+          <label><input type="radio" name="productType" value="outsourced"> 委外加工成品</label>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
       <legend>基本資料</legend>
       <div class="form-group">
         <label class="full-width">品名
@@ -365,11 +375,11 @@
     <details>
       <summary>ERP 必填區 (點擊展開)</summary>
       <div class="form-group">
-        <label>會計 / 分類<input type="text" value="1 (300製成品)" disabled></label>
+        <label>會計 / 分類<input type="text" id="accountingClass" disabled></label>
         <label>主要庫別<input type="text" value="A01 製成品倉" disabled></label>
       </div>
       <div class="form-group">
-        <label>銀行 / 品類<input type="text" id="bankCategory" disabled></label>
+        <label>營收分類 / 品類<input type="text" id="bankCategory" disabled></label>
         <label>銷售單位<input type="text" id="salesUnit" disabled></label>
       </div>
       <div class="form-group">
@@ -470,6 +480,8 @@
     const turkeySeqs = Array.from({length:9},(_,i)=>({val:String(i+1), text:String(i+1)}));
 
     // DOM 元件
+    const productTypeRadios = document.querySelectorAll('input[name="productType"]');
+    const accountClassInput = document.getElementById('accountingClass');
     const catSel = document.getElementById('category');
     const unitSel = document.getElementById('unit');
     const unitCustomWrap = document.getElementById('unitCustomWrap');
@@ -506,6 +518,14 @@
     const turkeySeq = document.getElementById('turkeySeq');
 
     function pad(num,len){ return String(num).padStart(len,'0'); }
+
+    function updateAccountingClass(){
+      const selected = document.querySelector('input[name="productType"]:checked');
+      if(!selected) return;
+      accountClassInput.value = selected.value === 'outsourced'
+        ? '7 (500委外加工成品)'
+        : '1 (300製成品)';
+    }
 
     function populateUnits(){
       const units = categoryUnits[catSel.value] || [];
@@ -585,9 +605,9 @@
         ["經銷商編號", dealerVal],
         [""],
         ["ERP 必填區", ""],
-        ["會計/分類", "1 (300製成品)"],
+        ["會計/分類", accountClassInput.value],
         ["主要庫別", "A01 製成品倉"],
-        ["銀行/品類", bankCatInput.value],
+        ["營收分類/品類", bankCatInput.value],
         ["銷售單位", salesUnitInput.value],
         ["有效天數", shelfLifeInput.value],
         ["複檢天數", recheckInput.value],
@@ -645,6 +665,7 @@
       document.getElementById('serialGen').open = false;
     }
     // 綁定事件
+    productTypeRadios.forEach(r=>r.addEventListener('change', updateAccountingClass));
     catSel.addEventListener('change', populateUnits);
     unitSel.addEventListener('change', handleUnitChange);
     unitCustomInput.addEventListener('input', handleUnitChange);
@@ -658,6 +679,7 @@
     document.getElementById('exportBtn').addEventListener('click', exportToExcel);
 
     // 初始化
+    updateAccountingClass();
     populateUnits();
     handleUnitChange();
     refreshSeries();
