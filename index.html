@@ -336,6 +336,16 @@
         <label>流水號 (3碼)
           <input type="text" id="serial" maxlength="3" pattern="[0-9]{1,3}" value="001">
         </label>
+        <label id="factoryWrap" style="display:none;">
+          代工廠編號
+          <select id="factoryCode">
+            <option value="1">1（源飛-柬埔寨廠）</option>
+            <option value="2">2（頑皮-美國廠）</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </label>
         <label>主銷國家
           <select id="countrySelect">
             <option value="T">T 台灣</option>
@@ -349,7 +359,7 @@
         </label>
       </div>
       <!-- 自營/經銷排列優化 -->
-      <div class="form-group direct-group">
+      <div class="form-group direct-group" id="directGroup">
         <div>自營 / 經銷</div>
         <div class="inline-radio-group">
           <label><input type="radio" name="direct" value="0" checked> 直營</label>
@@ -596,6 +606,9 @@
 
     const dealerWrap = document.getElementById('dealerWrap');
     const dealerCode = document.getElementById('dealerCode');
+    const directGroup = document.getElementById('directGroup');
+    const factoryWrap = document.getElementById('factoryWrap');
+    const factoryCode = document.getElementById('factoryCode');
 
     const serialInput = document.getElementById('serial');
     const itemCodeSpan = document.getElementById('itemCode');
@@ -619,6 +632,23 @@
       accountClassInput.value = selected.value === 'outsourced'
         ? '7 (500委外加工成品)'
         : '1 (300製成品)';
+    }
+
+    function handleProductTypeChange(){
+      updateAccountingClass();
+      const selected = document.querySelector('input[name="productType"]:checked');
+      if(!selected) return;
+      const isOutsourced = selected.value === 'outsourced';
+      if(directGroup){
+        directGroup.style.display = isOutsourced ? 'none' : 'grid';
+      }
+      if(isOutsourced){
+        dealerWrap.style.display = 'none';
+      } else {
+        const directSelected = document.querySelector('input[name="direct"]:checked');
+        dealerWrap.style.display = directSelected && directSelected.value === '1' ? 'flex' : 'none';
+      }
+      factoryWrap.style.display = isOutsourced ? 'flex' : 'none';
     }
 
     function populateUnits(){
@@ -669,7 +699,16 @@
         itemCodeSpan.textContent = "--";
         return;
       }
-      code += ser + petSel.value + serialVal + countrySel.value + (document.querySelector('input[name="direct"]:checked').value==='1'? dealerCode.value : '0');
+      const productType = document.querySelector('input[name="productType"]:checked');
+      const typeValue = productType ? productType.value : 'finished';
+      code += ser + petSel.value + serialVal;
+      if(typeValue === 'outsourced'){
+        code += factoryCode.value + countrySel.value;
+      } else {
+        const directSelected = document.querySelector('input[name="direct"]:checked');
+        const dealerVal = directSelected && directSelected.value === '1' ? dealerCode.value : '0';
+        code += countrySel.value + dealerVal;
+      }
       itemCodeSpan.textContent = code;
     }
     // 導出Excel＋美化
@@ -679,8 +718,15 @@
         alert("請先修正錯誤再匯出！");
         return;
       }
-      const direct = document.querySelector('input[name="direct"]:checked').value;
-      const dealerVal = direct==='1' ? dealerCode.value : '0';
+      const productType = document.querySelector('input[name="productType"]:checked');
+      const typeValue = productType ? productType.value : 'finished';
+      const isOutsourced = typeValue === 'outsourced';
+      const directSelected = document.querySelector('input[name="direct"]:checked');
+      const directValue = directSelected ? directSelected.value : '0';
+      const dealerVal = !isOutsourced && directValue === '1' ? dealerCode.value : '0';
+      const directText = isOutsourced ? '委外加工' : (directValue === '0' ? '直營' : '經銷');
+      const factoryText = factoryCode.options[factoryCode.selectedIndex].text;
+
       const data = [
         ["基本資料", ""],
         ["品號", itemCodeSpan.textContent],
@@ -694,9 +740,11 @@
         ["系列", seriesSel.value==='custom'?seriesCustomInput.value:seriesSel.options[seriesSel.selectedIndex].text],
         ["寵物", petSel.options[petSel.selectedIndex].text],
         ["流水號", pad(serialInput.value,3)],
+        ...(isOutsourced ? [["代工廠編號", factoryText]] : []),
         ["主銷國家", countrySel.options[countrySel.selectedIndex].text],
-        ["直營/經銷", direct==='0'?'直營':'經銷'],
-        ["經銷商編號", dealerVal],
+        ...(isOutsourced
+          ? [["直營/經銷", directText]]
+          : [["直營/經銷", directText], ["經銷商編號", dealerVal]]),
         [""],
         ["ERP 必填區", ""],
         ["會計/分類", accountClassInput.value],
@@ -759,13 +807,17 @@
       document.getElementById('serialGen').open = false;
     }
     // 綁定事件
-    productTypeRadios.forEach(r=>r.addEventListener('change', updateAccountingClass));
+    productTypeRadios.forEach(r=>r.addEventListener('change', handleProductTypeChange));
     catSel.addEventListener('change', populateUnits);
     unitSel.addEventListener('change', handleUnitChange);
     unitCustomInput.addEventListener('input', handleUnitChange);
     brandSel.addEventListener('change', refreshSeries);
     seriesSel.addEventListener('change', ()=>seriesCustomWrap.style.display = seriesSel.value==='custom'?'flex':'none');
-    document.querySelectorAll('input[name="direct"]').forEach(r=>r.addEventListener('change', ()=>dealerWrap.style.display = r.value==='1'?'flex':'none'));
+    document.querySelectorAll('input[name="direct"]').forEach(r=>r.addEventListener('change', ()=>{
+      const selectedType = document.querySelector('input[name="productType"]:checked');
+      const isOutsourced = selectedType && selectedType.value === 'outsourced';
+      dealerWrap.style.display = !isOutsourced && r.value==='1' ? 'flex' : 'none';
+    }));
     serialCatSel.addEventListener('change', handleSerialCatSel);
     [dryPrefix,drySpec,turkeySize,turkeyPack,turkeySeq].forEach(e=>e.addEventListener('change', updateSerialValue));
     document.getElementById('applySerialBtn').addEventListener('click', applySerialToForm);
@@ -773,7 +825,7 @@
     document.getElementById('exportBtn').addEventListener('click', exportToExcel);
 
     // 初始化
-    updateAccountingClass();
+    handleProductTypeChange();
     populateUnits();
     handleUnitChange();
     refreshSeries();
