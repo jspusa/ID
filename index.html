@@ -312,9 +312,9 @@
             <option value="G">G 活力零食</option>
             <option value="H">H 赫緻</option>
             <option value="K">K 開心狗</option>
-            <option value="M">M 關鍵時刻</option>
+            <option value="M">M 關健時刻</option>
             <option value="R">R 紅布朗</option>
-            <option value="V">V 每朝活力</option>
+            <option value="V">V 每朝元氣</option>
           </select>
         </label>
         <label>系列
@@ -428,25 +428,119 @@
     const recheckMap    = {'1':360,'2':540,'3':720,'4':720,'5':540};
     const defaultSeries = [{code:'PR',label:'PR'}];
     const seriesMap = {
-      'A':[ {code:'WD',label:'WIN無穀鮮肉糧'}, {code:'OS',label:'鴕鳥優多'}, {code:'AL',label:'鱷魚優多'},
-        {code:'MC',label:'蒸肉罐'}, {code:'SC',label:'蒸湯罐'}, {code:'PC',label:'益菌罐'}, {code:'JD',label:'小春日和乾糧'},
-        {code:'JC',label:'小春日和罐罐'}, {code:'JT',label:'小春日和零食'}, {code:'HC',label:'H2O機能補水泥罐系列'},
-        {code:'TS',label:'火雞筋條'}, {code:'TR',label:'火雞筋甜甜圈'}, {code:'TB',label:'火雞筋骨'}, {code:'TZ',label:'火雞筋蝴蝶餅'},
-        {code:'TP',label:'火雞筋八字結'}, {code:'TA',label:'火雞筋麻花辮'}, {code:'CT',label:'雞肉零食'},
-        {code:'DR',label:'火雞筋雞肉甜甜圈'}, {code:'DS',label:'火雞筋雞肉條'}, {code:'DB',label:'火雞筋雞肉骨'}, {code:'BR',label:'水牛零食'}, {code:'SL',label:'鮭魚系列'}
+      'A': [
+        {code:'WD', label:'WIN無穀鮮肉糧'},
+        {code:'OS', label:'鴕鳥優多'},
+        {code:'AL', label:'鱷魚優多'},
+        {code:'MC', label:'蒸肉罐'},
+        {code:'SC', label:'蒸湯罐'},
+        {code:'PC', label:'益菌罐'},
+        {code:'HC', label:'H2O機能補水泥罐'},
+        {code:'JD', label:'小春日和乾糧'},
+        {code:'JC', label:'小春日和罐罐'},
+        {code:'JT', label:'小春日和零食'},
+        {code:'TS', label:'火雞筋條'},
+        {code:'TR', label:'火雞筋甜甜圈'},
+        {code:'TB', label:'火雞筋骨'},
+        {code:'TZ', label:'火雞筋蝴蝶餅'},
+        {code:'TP', label:'火雞筋八字結'},
+        {code:'TA', label:'火雞筋麻花辮'},
+        {code:'TO', label:'火雞筋卷'},
+        {code:'TC', label:'火雞筋帶肉嚼片'},
+        {code:'TT', label:'火雞肉零食'},
+        {code:'DS', label:'火雞筋雞肉條'},
+        {code:'DR', label:'火雞筋雞肉甜甜圈'},
+        {code:'DB', label:'火雞筋雞肉骨'},
+        {code:'RB', label:'小牛肋骨'},
+        {code:'RT', label:'小牛肋骨與火雞筋'},
+        {code:'CT', label:'雞肉零食'},
+        {code:'BR', label:'(水)牛肉零食'},
+        {code:'SL', label:'鮭魚零食'},
+        {code:'SD', label:'鮭魚潔牙骨'}
       ],
-      'C':[ {code:'MD', label:'低溫風乾糧'},{code:'MC', label:'朕是喵罐頭'},{code:'MT', label:'卵磷脂肉條'} ],
-      'G':[ {code:'CR', label:'越南製系列'},{code:'CT', label:'台灣製系列'},{code:'KR', label:'火雞筋系列'},{code:'MR', label:'小包裝系列'},
-        {code:'YR', label:'YR'},{code:'BR', label:'牛肉零食'},{code:'SR', label:'GS系列'},{code:'QR', label:'軟系列'},{code:'LR', label:'量販包'} ],
-      'H':[ {code:'SP',label:'單一純肉系列'},{code:'CL',label:'經典饗宴系列'},{code:'PR',label:'美饌系列'},{code:'ZS',label:'佐餐粉'},
-        {code:'MC',label:'純肉餐罐'},{code:'HC',label:'滋補養生餐罐'},{code:'DR',label:'火雞筋雞肉甜甜圈'},{code:'DS',label:'火雞筋雞肉條'},
-        {code:'DB',label:'火雞筋雞肉骨'},{code:'DP',label:'火雞筋雞肉八字'},{code:'DA',label:'火雞筋雞肉麻花'} ],
-      'K':[ {code:'MD', label:'低溫風乾糧'},{code:'MC', label:'肉肉罐'},{code:'DT', label:'潔牙骨'},{code:'DQ', label:'軟Q潔牙骨'},{code:'CL', label:'KCL零食系列'} ],
-      'M':[ {code:'HD', label:'機能健康糧'},{code:'PD', label:'益生健康糧'},{code:'HC', label:'保健餐罐'},{code:'HT', label:'機能雞肉條'},
-        {code:'HS', label:'保健嚼棒'},{code:'ZD', label:'漢方健康糧'},{code:'ZC', label:'漢方主食罐'},{code:'ZT', label:'漢方養生大補帖'},{code:'ZS', label:'保健嚼棒'} ],
-      'R':[ {code:'MD', label:'乾糧'},{code:'MT', label:'滿分零食'} ],
-      'V':[ {code:'VD', label:'每朝活力小'},{code:'MD', label:'每朝活力大'},{code:'CR', label:'零食'},{code:'TS', label:'火雞筋條'},
-        {code:'TR', label:'火雞筋甜甜圈'},{code:'TB', label:'火雞筋骨'},{code:'TZ', label:'火雞筋蝴蝶餅'},{code:'TP', label:'火雞筋八字結'},{code:'TA', label:'火雞筋麻花辮'} ]
+      'C': [
+        {code:'MD', label:'低溫風乾糧'},
+        {code:'MC', label:'朕是喵罐頭'},
+        {code:'MT', label:'卵磷脂肉條'}
+      ],
+      'G': [
+        {code:'CR', label:'雞肉系列'},
+        {code:'SL', label:'鮭魚零食系列'},
+        {code:'SD', label:'鮭魚潔牙骨系列'},
+        {code:'CT', label:'台灣製系列'},
+        {code:'KR', label:'火雞筋系列'},
+        {code:'MR', label:'小包裝系列'},
+        {code:'YR', label:'YR'},
+        {code:'BR', label:'(水)牛肉零食'},
+        {code:'SR', label:'GS系列'},
+        {code:'QR', label:'軟系列'},
+        {code:'RB', label:'小牛肋條'},
+        {code:'LR', label:'量販包'},
+        {code:'TS', label:'火雞筋條'},
+        {code:'TR', label:'火雞筋甜甜圈'},
+        {code:'TB', label:'火雞筋骨'},
+        {code:'TZ', label:'火雞筋蝴蝶餅'},
+        {code:'TP', label:'火雞筋八字結'},
+        {code:'TA', label:'火雞筋麻花辮'},
+        {code:'TO', label:'火雞筋卷'},
+        {code:'TC', label:'火雞筋帶肉嚼片'},
+        {code:'TT', label:'火雞肉零食'}
+      ],
+      'H': [
+        {code:'SP', label:'單一純肉系列'},
+        {code:'CL', label:'經典饗宴系列'},
+        {code:'PR', label:'美饌系列'},
+        {code:'ZS', label:'佐餐粉'},
+        {code:'MC', label:'純肉餐罐'},
+        {code:'HC', label:'滋補養生餐罐'},
+        {code:'DR', label:'火雞筋雞肉甜甜圈'},
+        {code:'DS', label:'火雞筋雞肉條'},
+        {code:'DB', label:'火雞筋雞肉骨'},
+        {code:'DP', label:'火雞筋雞肉八字'},
+        {code:'DA', label:'火雞筋雞肉麻花'}
+      ],
+      'K': [
+        {code:'MD', label:'低溫風乾糧'},
+        {code:'MC', label:'肉肉罐'},
+        {code:'DT', label:'潔牙骨(專業通路)'},
+        {code:'DF', label:'功能潔牙骨'},
+        {code:'DC', label:'潔牙骨(人通)'},
+        {code:'DQ', label:'軟Q潔牙骨'},
+        {code:'CL', label:'零食系列KCL'}
+      ],
+      'M': [
+        {code:'HD', label:'機能健康糧'},
+        {code:'PD', label:'益生健康糧'},
+        {code:'HC', label:'保健餐罐'},
+        {code:'HT', label:'機能雞肉條'},
+        {code:'HS', label:'保健嚼棒'},
+        {code:'ZD', label:'漢方健康糧'},
+        {code:'ZC', label:'漢方主食罐'},
+        {code:'ZT', label:'漢方養生大補帖'},
+        {code:'ZS', label:'保健嚼棒'}
+      ],
+      'R': [
+        {code:'MD', label:'乾糧'},
+        {code:'MT', label:'滿分零食'}
+      ],
+      'V': [
+        {code:'VD', label:'每朝活力小'},
+        {code:'MD', label:'每朝活力大'},
+        {code:'TS', label:'火雞筋條'},
+        {code:'TR', label:'火雞筋甜甜圈'},
+        {code:'TB', label:'火雞筋骨'},
+        {code:'TZ', label:'火雞筋蝴蝶餅'},
+        {code:'TP', label:'火雞筋八字結'},
+        {code:'TA', label:'火雞筋麻花辮'},
+        {code:'CR', label:'零食'},
+        {code:'CC', label:'罐頭'},
+        {code:'FT', label:'巴沙魚皮零食'},
+        {code:'FS', label:'巴沙魚皮捲棒'},
+        {code:'FR', label:'巴沙魚皮甜甜圈'},
+        {code:'FB', label:'巴沙魚皮打結骨'},
+        {code:'FA', label:'巴沙魚皮麻花辮'},
+        {code:'DF', label:'機能潔牙棒'}
+      ]
     };
     const dryOptions = [
       { val: '01', text: '01 火雞' },
@@ -544,7 +638,7 @@
     }
     function refreshSeries(){
       const list = seriesMap[brandSel.value] || defaultSeries;
-      seriesSel.innerHTML = list.map(o=>`<option value="${o.code}">${o.label} (${o.code})</option>`) + '<option value="custom">手動輸入</option>';
+      seriesSel.innerHTML = list.map(o=>`<option value="${o.code}">${o.label}（${o.code}）</option>`) + '<option value="custom">手動輸入</option>';
       seriesCustomWrap.style.display='none';
     }
     function initSerial(){
