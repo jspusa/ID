@@ -263,6 +263,16 @@
   <h2>製成品品號申請單 (10碼)</h2>
   <form id="productForm" autocomplete="off">
     <fieldset>
+      <legend>品項類型</legend>
+      <div class="form-group">
+        <div class="inline-radio-group">
+          <label><input type="radio" name="productType" value="finished" checked> 製成品</label>
+          <label><input type="radio" name="productType" value="outsourced"> 委外加工成品</label>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
       <legend>基本資料</legend>
       <div class="form-group">
         <label class="full-width">品名
@@ -302,9 +312,9 @@
             <option value="G">G 活力零食</option>
             <option value="H">H 赫緻</option>
             <option value="K">K 開心狗</option>
-            <option value="M">M 關鍵時刻</option>
+            <option value="M">M 關健時刻</option>
             <option value="R">R 紅布朗</option>
-            <option value="V">V 每朝活力</option>
+            <option value="V">V 每朝元氣</option>
           </select>
         </label>
         <label>系列
@@ -326,6 +336,16 @@
         <label>流水號 (3碼)
           <input type="text" id="serial" maxlength="3" pattern="[0-9]{1,3}" value="001">
         </label>
+        <label id="factoryWrap" style="display:none;">
+          代工廠編號
+          <select id="factoryCode">
+            <option value="1">1（源飛-柬埔寨廠）</option>
+            <option value="2">2（頑皮-美國廠）</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </label>
         <label>主銷國家
           <select id="countrySelect">
             <option value="T">T 台灣</option>
@@ -339,7 +359,7 @@
         </label>
       </div>
       <!-- 自營/經銷排列優化 -->
-      <div class="form-group direct-group">
+      <div class="form-group direct-group" id="directGroup">
         <div>自營 / 經銷</div>
         <div class="inline-radio-group">
           <label><input type="radio" name="direct" value="0" checked> 直營</label>
@@ -365,11 +385,11 @@
     <details>
       <summary>ERP 必填區 (點擊展開)</summary>
       <div class="form-group">
-        <label>會計 / 分類<input type="text" value="1 (300製成品)" disabled></label>
+        <label>會計 / 分類<input type="text" id="accountingClass" disabled></label>
         <label>主要庫別<input type="text" value="A01 製成品倉" disabled></label>
       </div>
       <div class="form-group">
-        <label>銀行 / 品類<input type="text" id="bankCategory" disabled></label>
+        <label>營收分類 / 品類<input type="text" id="bankCategory" disabled></label>
         <label>銷售單位<input type="text" id="salesUnit" disabled></label>
       </div>
       <div class="form-group">
@@ -418,25 +438,119 @@
     const recheckMap    = {'1':360,'2':540,'3':720,'4':720,'5':540};
     const defaultSeries = [{code:'PR',label:'PR'}];
     const seriesMap = {
-      'A':[ {code:'WD',label:'WIN無穀鮮肉糧'}, {code:'OS',label:'鴕鳥優多'}, {code:'AL',label:'鱷魚優多'},
-        {code:'MC',label:'蒸肉罐'}, {code:'SC',label:'蒸湯罐'}, {code:'PC',label:'益菌罐'}, {code:'JD',label:'小春日和乾糧'},
-        {code:'JC',label:'小春日和罐罐'}, {code:'JT',label:'小春日和零食'}, {code:'HC',label:'H2O機能補水泥罐系列'},
-        {code:'TS',label:'火雞筋條'}, {code:'TR',label:'火雞筋甜甜圈'}, {code:'TB',label:'火雞筋骨'}, {code:'TZ',label:'火雞筋蝴蝶餅'},
-        {code:'TP',label:'火雞筋八字結'}, {code:'TA',label:'火雞筋麻花辮'}, {code:'CT',label:'雞肉零食'},
-        {code:'DR',label:'火雞筋雞肉甜甜圈'}, {code:'DS',label:'火雞筋雞肉條'}, {code:'DB',label:'火雞筋雞肉骨'}, {code:'BR',label:'水牛零食'}, {code:'SL',label:'鮭魚系列'}
+      'A': [
+        {code:'WD', label:'WIN無穀鮮肉糧'},
+        {code:'OS', label:'鴕鳥優多'},
+        {code:'AL', label:'鱷魚優多'},
+        {code:'MC', label:'蒸肉罐'},
+        {code:'SC', label:'蒸湯罐'},
+        {code:'PC', label:'益菌罐'},
+        {code:'HC', label:'H2O機能補水泥罐'},
+        {code:'JD', label:'小春日和乾糧'},
+        {code:'JC', label:'小春日和罐罐'},
+        {code:'JT', label:'小春日和零食'},
+        {code:'TS', label:'火雞筋條'},
+        {code:'TR', label:'火雞筋甜甜圈'},
+        {code:'TB', label:'火雞筋骨'},
+        {code:'TZ', label:'火雞筋蝴蝶餅'},
+        {code:'TP', label:'火雞筋八字結'},
+        {code:'TA', label:'火雞筋麻花辮'},
+        {code:'TO', label:'火雞筋卷'},
+        {code:'TC', label:'火雞筋帶肉嚼片'},
+        {code:'TT', label:'火雞肉零食'},
+        {code:'DS', label:'火雞筋雞肉條'},
+        {code:'DR', label:'火雞筋雞肉甜甜圈'},
+        {code:'DB', label:'火雞筋雞肉骨'},
+        {code:'RB', label:'小牛肋骨'},
+        {code:'RT', label:'小牛肋骨與火雞筋'},
+        {code:'CT', label:'雞肉零食'},
+        {code:'BR', label:'(水)牛肉零食'},
+        {code:'SL', label:'鮭魚零食'},
+        {code:'SD', label:'鮭魚潔牙骨'}
       ],
-      'C':[ {code:'MD', label:'低溫風乾糧'},{code:'MC', label:'朕是喵罐頭'},{code:'MT', label:'卵磷脂肉條'} ],
-      'G':[ {code:'CR', label:'越南製系列'},{code:'CT', label:'台灣製系列'},{code:'KR', label:'火雞筋系列'},{code:'MR', label:'小包裝系列'},
-        {code:'YR', label:'YR'},{code:'BR', label:'牛肉零食'},{code:'SR', label:'GS系列'},{code:'QR', label:'軟系列'},{code:'LR', label:'量販包'} ],
-      'H':[ {code:'SP',label:'單一純肉系列'},{code:'CL',label:'經典饗宴系列'},{code:'PR',label:'美饌系列'},{code:'ZS',label:'佐餐粉'},
-        {code:'MC',label:'純肉餐罐'},{code:'HC',label:'滋補養生餐罐'},{code:'DR',label:'火雞筋雞肉甜甜圈'},{code:'DS',label:'火雞筋雞肉條'},
-        {code:'DB',label:'火雞筋雞肉骨'},{code:'DP',label:'火雞筋雞肉八字'},{code:'DA',label:'火雞筋雞肉麻花'} ],
-      'K':[ {code:'MD', label:'低溫風乾糧'},{code:'MC', label:'肉肉罐'},{code:'DT', label:'潔牙骨'},{code:'DQ', label:'軟Q潔牙骨'},{code:'CL', label:'KCL零食系列'} ],
-      'M':[ {code:'HD', label:'機能健康糧'},{code:'PD', label:'益生健康糧'},{code:'HC', label:'保健餐罐'},{code:'HT', label:'機能雞肉條'},
-        {code:'HS', label:'保健嚼棒'},{code:'ZD', label:'漢方健康糧'},{code:'ZC', label:'漢方主食罐'},{code:'ZT', label:'漢方養生大補帖'},{code:'ZS', label:'保健嚼棒'} ],
-      'R':[ {code:'MD', label:'乾糧'},{code:'MT', label:'滿分零食'} ],
-      'V':[ {code:'VD', label:'每朝活力小'},{code:'MD', label:'每朝活力大'},{code:'CR', label:'零食'},{code:'TS', label:'火雞筋條'},
-        {code:'TR', label:'火雞筋甜甜圈'},{code:'TB', label:'火雞筋骨'},{code:'TZ', label:'火雞筋蝴蝶餅'},{code:'TP', label:'火雞筋八字結'},{code:'TA', label:'火雞筋麻花辮'} ]
+      'C': [
+        {code:'MD', label:'低溫風乾糧'},
+        {code:'MC', label:'朕是喵罐頭'},
+        {code:'MT', label:'卵磷脂肉條'}
+      ],
+      'G': [
+        {code:'CR', label:'雞肉系列'},
+        {code:'SL', label:'鮭魚零食系列'},
+        {code:'SD', label:'鮭魚潔牙骨系列'},
+        {code:'CT', label:'台灣製系列'},
+        {code:'KR', label:'火雞筋系列'},
+        {code:'MR', label:'小包裝系列'},
+        {code:'YR', label:'YR'},
+        {code:'BR', label:'(水)牛肉零食'},
+        {code:'SR', label:'GS系列'},
+        {code:'QR', label:'軟系列'},
+        {code:'RB', label:'小牛肋條'},
+        {code:'LR', label:'量販包'},
+        {code:'TS', label:'火雞筋條'},
+        {code:'TR', label:'火雞筋甜甜圈'},
+        {code:'TB', label:'火雞筋骨'},
+        {code:'TZ', label:'火雞筋蝴蝶餅'},
+        {code:'TP', label:'火雞筋八字結'},
+        {code:'TA', label:'火雞筋麻花辮'},
+        {code:'TO', label:'火雞筋卷'},
+        {code:'TC', label:'火雞筋帶肉嚼片'},
+        {code:'TT', label:'火雞肉零食'}
+      ],
+      'H': [
+        {code:'SP', label:'單一純肉系列'},
+        {code:'CL', label:'經典饗宴系列'},
+        {code:'PR', label:'美饌系列'},
+        {code:'ZS', label:'佐餐粉'},
+        {code:'MC', label:'純肉餐罐'},
+        {code:'HC', label:'滋補養生餐罐'},
+        {code:'DR', label:'火雞筋雞肉甜甜圈'},
+        {code:'DS', label:'火雞筋雞肉條'},
+        {code:'DB', label:'火雞筋雞肉骨'},
+        {code:'DP', label:'火雞筋雞肉八字'},
+        {code:'DA', label:'火雞筋雞肉麻花'}
+      ],
+      'K': [
+        {code:'MD', label:'低溫風乾糧'},
+        {code:'MC', label:'肉肉罐'},
+        {code:'DT', label:'潔牙骨(專業通路)'},
+        {code:'DF', label:'功能潔牙骨'},
+        {code:'DC', label:'潔牙骨(人通)'},
+        {code:'DQ', label:'軟Q潔牙骨'},
+        {code:'CL', label:'零食系列KCL'}
+      ],
+      'M': [
+        {code:'HD', label:'機能健康糧'},
+        {code:'PD', label:'益生健康糧'},
+        {code:'HC', label:'保健餐罐'},
+        {code:'HT', label:'機能雞肉條'},
+        {code:'HS', label:'保健嚼棒'},
+        {code:'ZD', label:'漢方健康糧'},
+        {code:'ZC', label:'漢方主食罐'},
+        {code:'ZT', label:'漢方養生大補帖'},
+        {code:'ZS', label:'保健嚼棒'}
+      ],
+      'R': [
+        {code:'MD', label:'乾糧'},
+        {code:'MT', label:'滿分零食'}
+      ],
+      'V': [
+        {code:'VD', label:'每朝活力小'},
+        {code:'MD', label:'每朝活力大'},
+        {code:'TS', label:'火雞筋條'},
+        {code:'TR', label:'火雞筋甜甜圈'},
+        {code:'TB', label:'火雞筋骨'},
+        {code:'TZ', label:'火雞筋蝴蝶餅'},
+        {code:'TP', label:'火雞筋八字結'},
+        {code:'TA', label:'火雞筋麻花辮'},
+        {code:'CR', label:'零食'},
+        {code:'CC', label:'罐頭'},
+        {code:'FT', label:'巴沙魚皮零食'},
+        {code:'FS', label:'巴沙魚皮捲棒'},
+        {code:'FR', label:'巴沙魚皮甜甜圈'},
+        {code:'FB', label:'巴沙魚皮打結骨'},
+        {code:'FA', label:'巴沙魚皮麻花辮'},
+        {code:'DF', label:'機能潔牙棒'}
+      ]
     };
     const dryOptions = [
       { val: '01', text: '01 火雞' },
@@ -470,6 +584,8 @@
     const turkeySeqs = Array.from({length:9},(_,i)=>({val:String(i+1), text:String(i+1)}));
 
     // DOM 元件
+    const productTypeRadios = document.querySelectorAll('input[name="productType"]');
+    const accountClassInput = document.getElementById('accountingClass');
     const catSel = document.getElementById('category');
     const unitSel = document.getElementById('unit');
     const unitCustomWrap = document.getElementById('unitCustomWrap');
@@ -490,6 +606,9 @@
 
     const dealerWrap = document.getElementById('dealerWrap');
     const dealerCode = document.getElementById('dealerCode');
+    const directGroup = document.getElementById('directGroup');
+    const factoryWrap = document.getElementById('factoryWrap');
+    const factoryCode = document.getElementById('factoryCode');
 
     const serialInput = document.getElementById('serial');
     const itemCodeSpan = document.getElementById('itemCode');
@@ -506,6 +625,31 @@
     const turkeySeq = document.getElementById('turkeySeq');
 
     function pad(num,len){ return String(num).padStart(len,'0'); }
+
+    function updateAccountingClass(){
+      const selected = document.querySelector('input[name="productType"]:checked');
+      if(!selected) return;
+      accountClassInput.value = selected.value === 'outsourced'
+        ? '7 (500委外加工成品)'
+        : '1 (300製成品)';
+    }
+
+    function handleProductTypeChange(){
+      updateAccountingClass();
+      const selected = document.querySelector('input[name="productType"]:checked');
+      if(!selected) return;
+      const isOutsourced = selected.value === 'outsourced';
+      if(directGroup){
+        directGroup.style.display = isOutsourced ? 'none' : 'grid';
+      }
+      if(isOutsourced){
+        dealerWrap.style.display = 'none';
+      } else {
+        const directSelected = document.querySelector('input[name="direct"]:checked');
+        dealerWrap.style.display = directSelected && directSelected.value === '1' ? 'flex' : 'none';
+      }
+      factoryWrap.style.display = isOutsourced ? 'flex' : 'none';
+    }
 
     function populateUnits(){
       const units = categoryUnits[catSel.value] || [];
@@ -524,7 +668,7 @@
     }
     function refreshSeries(){
       const list = seriesMap[brandSel.value] || defaultSeries;
-      seriesSel.innerHTML = list.map(o=>`<option value="${o.code}">${o.label} (${o.code})</option>`) + '<option value="custom">手動輸入</option>';
+      seriesSel.innerHTML = list.map(o=>`<option value="${o.code}">${o.label}（${o.code}）</option>`) + '<option value="custom">手動輸入</option>';
       seriesCustomWrap.style.display='none';
     }
     function initSerial(){
@@ -555,7 +699,16 @@
         itemCodeSpan.textContent = "--";
         return;
       }
-      code += ser + petSel.value + serialVal + countrySel.value + (document.querySelector('input[name="direct"]:checked').value==='1'? dealerCode.value : '0');
+      const productType = document.querySelector('input[name="productType"]:checked');
+      const typeValue = productType ? productType.value : 'finished';
+      code += ser + petSel.value + serialVal;
+      if(typeValue === 'outsourced'){
+        code += factoryCode.value + countrySel.value;
+      } else {
+        const directSelected = document.querySelector('input[name="direct"]:checked');
+        const dealerVal = directSelected && directSelected.value === '1' ? dealerCode.value : '0';
+        code += countrySel.value + dealerVal;
+      }
       itemCodeSpan.textContent = code;
     }
     // 導出Excel＋美化
@@ -565,8 +718,15 @@
         alert("請先修正錯誤再匯出！");
         return;
       }
-      const direct = document.querySelector('input[name="direct"]:checked').value;
-      const dealerVal = direct==='1' ? dealerCode.value : '0';
+      const productType = document.querySelector('input[name="productType"]:checked');
+      const typeValue = productType ? productType.value : 'finished';
+      const isOutsourced = typeValue === 'outsourced';
+      const directSelected = document.querySelector('input[name="direct"]:checked');
+      const directValue = directSelected ? directSelected.value : '0';
+      const dealerVal = !isOutsourced && directValue === '1' ? dealerCode.value : '0';
+      const directText = isOutsourced ? '委外加工' : (directValue === '0' ? '直營' : '經銷');
+      const factoryText = factoryCode.options[factoryCode.selectedIndex].text;
+
       const data = [
         ["基本資料", ""],
         ["品號", itemCodeSpan.textContent],
@@ -580,14 +740,16 @@
         ["系列", seriesSel.value==='custom'?seriesCustomInput.value:seriesSel.options[seriesSel.selectedIndex].text],
         ["寵物", petSel.options[petSel.selectedIndex].text],
         ["流水號", pad(serialInput.value,3)],
+        ...(isOutsourced ? [["代工廠編號", factoryText]] : []),
         ["主銷國家", countrySel.options[countrySel.selectedIndex].text],
-        ["直營/經銷", direct==='0'?'直營':'經銷'],
-        ["經銷商編號", dealerVal],
+        ...(isOutsourced
+          ? [["直營/經銷", directText]]
+          : [["直營/經銷", directText], ["經銷商編號", dealerVal]]),
         [""],
         ["ERP 必填區", ""],
-        ["會計/分類", "1 (300製成品)"],
+        ["會計/分類", accountClassInput.value],
         ["主要庫別", "A01 製成品倉"],
-        ["銀行/品類", bankCatInput.value],
+        ["營收分類/品類", bankCatInput.value],
         ["銷售單位", salesUnitInput.value],
         ["有效天數", shelfLifeInput.value],
         ["複檢天數", recheckInput.value],
@@ -645,12 +807,17 @@
       document.getElementById('serialGen').open = false;
     }
     // 綁定事件
+    productTypeRadios.forEach(r=>r.addEventListener('change', handleProductTypeChange));
     catSel.addEventListener('change', populateUnits);
     unitSel.addEventListener('change', handleUnitChange);
     unitCustomInput.addEventListener('input', handleUnitChange);
     brandSel.addEventListener('change', refreshSeries);
     seriesSel.addEventListener('change', ()=>seriesCustomWrap.style.display = seriesSel.value==='custom'?'flex':'none');
-    document.querySelectorAll('input[name="direct"]').forEach(r=>r.addEventListener('change', ()=>dealerWrap.style.display = r.value==='1'?'flex':'none'));
+    document.querySelectorAll('input[name="direct"]').forEach(r=>r.addEventListener('change', ()=>{
+      const selectedType = document.querySelector('input[name="productType"]:checked');
+      const isOutsourced = selectedType && selectedType.value === 'outsourced';
+      dealerWrap.style.display = !isOutsourced && r.value==='1' ? 'flex' : 'none';
+    }));
     serialCatSel.addEventListener('change', handleSerialCatSel);
     [dryPrefix,drySpec,turkeySize,turkeyPack,turkeySeq].forEach(e=>e.addEventListener('change', updateSerialValue));
     document.getElementById('applySerialBtn').addEventListener('click', applySerialToForm);
@@ -658,6 +825,7 @@
     document.getElementById('exportBtn').addEventListener('click', exportToExcel);
 
     // 初始化
+    handleProductTypeChange();
     populateUnits();
     handleUnitChange();
     refreshSeries();
