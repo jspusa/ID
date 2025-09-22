@@ -336,25 +336,71 @@
         <label>流水號 (3碼)
           <input type="text" id="serial" maxlength="3" pattern="[0-9]{1,3}" value="001">
         </label>
-        <label id="factoryWrap" style="display:none;">
-          代工廠編號
-          <select id="factoryCode">
-            <option value="1">1（源飛-柬埔寨廠）</option>
-            <option value="2">2（頑皮-美國廠）</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
+        <label id="languageWrap" style="display:none;">
+          販售國家語言
+          <select id="languageSelect">
+            <option value="T">T 台灣</option>
+            <option value="A">A 美國</option>
+            <option value="J">J 日本</option>
+            <option value="K">K 韓國</option>
+            <option value="V">V 越南</option>
+            <option value="L">L 泰國</option>
+            <option value="C">C 中國</option>
+            <option value="S">S 新加坡</option>
+            <option value="H">H 香港</option>
+            <option value="D">D 澳門</option>
+            <option value="M">M 馬來西亞</option>
+            <option value="I">I 印尼</option>
+            <option value="O">O 印度</option>
+            <option value="G">G 德國</option>
+            <option value="F">F 法國</option>
+            <option value="E">E 英國</option>
+            <option value="U">U 歐盟</option>
+            <option value="B">B 柬埔寨</option>
           </select>
         </label>
-        <label>主銷國家
+        <label id="manufactureWrap" style="display:none;">
+          製造廠國家
+          <select id="manufactureSelect">
+            <option value="T">T 台灣</option>
+            <option value="A">A 美國</option>
+            <option value="J">J 日本</option>
+            <option value="K">K 韓國</option>
+            <option value="V">V 越南</option>
+            <option value="L">L 泰國</option>
+            <option value="C">C 中國</option>
+            <option value="S">S 新加坡</option>
+            <option value="H">H 香港</option>
+            <option value="D">D 澳門</option>
+            <option value="M">M 馬來西亞</option>
+            <option value="I">I 印尼</option>
+            <option value="O">O 印度</option>
+            <option value="G">G 德國</option>
+            <option value="F">F 法國</option>
+            <option value="E">E 英國</option>
+            <option value="U">U 歐盟</option>
+            <option value="B">B 柬埔寨</option>
+          </select>
+        </label>
+        <label id="countryWrap">主銷國家
           <select id="countrySelect">
             <option value="T">T 台灣</option>
             <option value="A">A 美國</option>
             <option value="J">J 日本</option>
             <option value="K">K 韓國</option>
-            <option value="H">H 香港</option>
-            <option value="S">S 新加坡</option>
             <option value="V">V 越南</option>
+            <option value="L">L 泰國</option>
+            <option value="C">C 中國</option>
+            <option value="S">S 新加坡</option>
+            <option value="H">H 香港</option>
+            <option value="D">D 澳門</option>
+            <option value="M">M 馬來西亞</option>
+            <option value="I">I 印尼</option>
+            <option value="O">O 印度</option>
+            <option value="G">G 德國</option>
+            <option value="F">F 法國</option>
+            <option value="E">E 英國</option>
+            <option value="U">U 歐盟</option>
           </select>
         </label>
       </div>
@@ -602,13 +648,16 @@
     const seriesCustomInput = document.getElementById('seriesCustom');
 
     const petSel = document.getElementById('petSelect');
+    const countryWrap = document.getElementById('countryWrap');
     const countrySel = document.getElementById('countrySelect');
+    const languageWrap = document.getElementById('languageWrap');
+    const languageSel = document.getElementById('languageSelect');
+    const manufactureWrap = document.getElementById('manufactureWrap');
+    const manufactureSel = document.getElementById('manufactureSelect');
 
     const dealerWrap = document.getElementById('dealerWrap');
     const dealerCode = document.getElementById('dealerCode');
     const directGroup = document.getElementById('directGroup');
-    const factoryWrap = document.getElementById('factoryWrap');
-    const factoryCode = document.getElementById('factoryCode');
 
     const serialInput = document.getElementById('serial');
     const itemCodeSpan = document.getElementById('itemCode');
@@ -648,7 +697,15 @@
         const directSelected = document.querySelector('input[name="direct"]:checked');
         dealerWrap.style.display = directSelected && directSelected.value === '1' ? 'flex' : 'none';
       }
-      factoryWrap.style.display = isOutsourced ? 'flex' : 'none';
+      if(languageWrap){
+        languageWrap.style.display = isOutsourced ? 'flex' : 'none';
+      }
+      if(manufactureWrap){
+        manufactureWrap.style.display = isOutsourced ? 'flex' : 'none';
+      }
+      if(countryWrap){
+        countryWrap.style.display = isOutsourced ? 'none' : 'flex';
+      }
     }
 
     function populateUnits(){
@@ -704,7 +761,7 @@
       let code = prefix + brandSel.value;
       code += ser + petSel.value + serialVal;
       if(typeValue === 'outsourced'){
-        code += factoryCode.value + countrySel.value;
+        code += languageSel.value + manufactureSel.value;
       } else {
         const directSelected = document.querySelector('input[name="direct"]:checked');
         const dealerVal = directSelected && directSelected.value === '1' ? dealerCode.value : '0';
@@ -726,7 +783,9 @@
       const directValue = directSelected ? directSelected.value : '0';
       const dealerVal = !isOutsourced && directValue === '1' ? dealerCode.value : '0';
       const directText = isOutsourced ? '委外加工' : (directValue === '0' ? '直營' : '經銷');
-      const factoryText = factoryCode.options[factoryCode.selectedIndex].text;
+      const languageText = isOutsourced ? languageSel.options[languageSel.selectedIndex].text : '';
+      const manufactureText = isOutsourced ? manufactureSel.options[manufactureSel.selectedIndex].text : '';
+      const countryText = countrySel.options[countrySel.selectedIndex].text;
 
       const data = [
         ["基本資料", ""],
@@ -741,11 +800,9 @@
         ["系列", seriesSel.value==='custom'?seriesCustomInput.value:seriesSel.options[seriesSel.selectedIndex].text],
         ["寵物", petSel.options[petSel.selectedIndex].text],
         ["流水號", pad(serialInput.value,3)],
-        ...(isOutsourced ? [["代工廠編號", factoryText]] : []),
-        ["主銷國家", countrySel.options[countrySel.selectedIndex].text],
         ...(isOutsourced
-          ? [["直營/經銷", directText]]
-          : [["直營/經銷", directText], ["經銷商編號", dealerVal]]),
+          ? [["販售國家語言", languageText], ["製造廠國家", manufactureText], ["直營/經銷", directText]]
+          : [["主銷國家", countryText], ["直營/經銷", directText], ["經銷商編號", dealerVal]]),
         [""],
         ["ERP 必填區", ""],
         ["會計/分類", accountClassInput.value],
