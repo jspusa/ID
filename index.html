@@ -228,31 +228,66 @@
       <label>品類
         <select id="serialCategory">
           <option value="">-- 請選擇 --</option>
-          <option value="dry">乾糧</option>
-          <option value="turkey">火雞筋</option>
+          <option value="feed">飼料</option>
+          <option value="tendon">火雞筋、巴沙魚皮</option>
+          <option value="snack">一般零食(CR之外)、潔牙骨、漢方大補帖</option>
+          <option value="kcdog">KCDOG 潔牙骨</option>
+          <option value="canned">罐頭</option>
         </select>
       </label>
     </div>
-    <div id="drySection" class="serial-section" style="display:none;">
+    <div id="feedSection" class="serial-section" style="display:none;">
       <div class="form-group">
-        <label>配方 (前兩碼)
-          <select id="dryPrefix"></select>
+        <label>肉源 / 機能 (前兩碼)
+          <select id="feedPrefix"></select>
         </label>
       </div>
       <div class="form-group">
         <label>規格 (最後一碼)
-          <select id="drySpec"></select>
+          <select id="feedSpec"></select>
         </label>
       </div>
     </div>
-    <div id="turkeySection" class="serial-section" style="display:none;">
+    <div id="tendonSection" class="serial-section" style="display:none;">
       <div class="form-group">
-        <label>大小 / 包裝 / 流水
-          <div class="serial-row">
-            <select id="turkeySize"></select>
-            <select id="turkeyPack"></select>
-            <select id="turkeySeq"></select>
-          </div>
+        <label>大小 (前兩碼)
+          <select id="tendonSize"></select>
+        </label>
+      </div>
+      <div class="form-group">
+        <label>包裝 (最後一碼)
+          <select id="tendonPack"></select>
+        </label>
+      </div>
+    </div>
+    <div id="snackSection" class="serial-section" style="display:none;">
+      <div class="form-group">
+        <label>流水號 (前兩碼)
+          <select id="snackPrefix"></select>
+        </label>
+      </div>
+      <div class="form-group">
+        <label>重量 (最後一碼)
+          <select id="snackWeight"></select>
+        </label>
+      </div>
+    </div>
+    <div id="kcdogSection" class="serial-section" style="display:none;">
+      <div class="form-group">
+        <label>流水號 (前兩碼)
+          <select id="kcdogPrefix"></select>
+        </label>
+      </div>
+      <div class="form-group">
+        <label>重量 (最後一碼)
+          <select id="kcdogWeight"></select>
+        </label>
+      </div>
+    </div>
+    <div id="cannedSection" class="serial-section" style="display:none;">
+      <div class="form-group">
+        <label>暫定流水號 (3 碼)
+          <input type="text" id="cannedSerial" maxlength="3" pattern="\d{1,3}" placeholder="例如：001">
         </label>
       </div>
     </div>
@@ -598,36 +633,58 @@
         {code:'DF', label:'機能潔牙棒'}
       ]
     };
-    const dryOptions = [
+    const feedPrefixes = [
       { val: '01', text: '01 火雞' },
-      { val: '02', text: '02 羊肉' },
-      { val: '03', text: '03 鴨肉' },
-      { val: '04', text: '04 牛肉' },
-      { val: '05', text: '05 鹿肉' },
-      { val: '06', text: '06 雞肉' },
-      { val: '07', text: '07 魚肉' }
+      { val: '02', text: '02 羊' },
+      { val: '03', text: '03 鴨' },
+      { val: '04', text: '04 牛' },
+      { val: '05', text: '05 鹿' },
+      { val: '06', text: '06 雞' },
+      { val: '07', text: '07 魚' },
+      { val: '08', text: '08 豬' },
+      { val: '09', text: '09 鳥' },
+      { val: '10', text: '10 蛋類' }
     ];
-    const drySpecs = [
-      { val: '0', text: '0 重1-99克' },
-      { val: '1', text: '1 重100-300克' },
-      { val: '3', text: '3 重301-500克' },
-      { val: '5', text: '5 重501-1000克' },
-      { val: '7', text: '7 重1001-2500克' },
-      { val: '9', text: '9 超過2501克' }
+    const feedSpecs = [
+      { val: '0', text: '0 1-99g' },
+      { val: '1', text: '1 100-300g' },
+      { val: '3', text: '3 301-500g' },
+      { val: '5', text: '5 501-1000g' },
+      { val: '7', text: '7 1001-2500g' },
+      { val: '9', text: '9 2501g以上' }
     ];
-    const turkeySizes = [
-      { val: '1', text: '1 小' },
-      { val: '3', text: '3 中' },
-      { val: '5', text: '5 大' }
+    const tendonSizes = [
+      { val: '01', text: '01 小' },
+      { val: '03', text: '03 中' },
+      { val: '05', text: '05 大' }
     ];
-    const turkeyPacks = [
-      { val: '1', text: '1 單包' },
-      { val: '3', text: '3 袋' },
-      { val: '5', text: '5 吊掛' },
-      { val: '7', text: '7 量販' },
-      { val: '9', text: '9 盒' }
+    const tendonPacks = [
+      { val: '0', text: '0 盒裝小包' },
+      { val: '1', text: '1 TTS05背封袋 105×290' },
+      { val: '3', text: '3 ATS01吊掛袋 120×330' },
+      { val: '5', text: '5 水牛零食中袋 190×250' },
+      { val: '6', text: '6 AFK袋 180×280' },
+      { val: '7', text: '7 GL量販袋 260×320' },
+      { val: '9', text: '9 盒裝' }
     ];
-    const turkeySeqs = Array.from({length:9},(_,i)=>({val:String(i+1), text:String(i+1)}));
+    const snackPrefixes = Array.from({length:9},(_,i)=>({ val: pad(i+1,2), text: pad(i+1,2) }));
+    const snackWeights = [
+      { val: '0', text: '0 1-49g' },
+      { val: '1', text: '1 50-224g' },
+      { val: '3', text: '3 225-453g' },
+      { val: '5', text: '5 454-681g' },
+      { val: '7', text: '7 682-1362g' },
+      { val: '9', text: '9 >1362g' }
+    ];
+    const kcdogPrefixes = Array.from({length:9},(_,i)=>({ val: pad(i+1,2), text: pad(i+1,2) }));
+    const kcdogWeights = [
+      { val: '0', text: '0 1-90g' },
+      { val: '1', text: '1 91-224g' },
+      { val: '3', text: '3 225-453g' },
+      { val: '5', text: '5 454-681g' },
+      { val: '7', text: '7 682-1362g' },
+      { val: '9', text: '9 >1362g' }
+    ];
 
     // DOM 元件
     const productTypeRadios = document.querySelectorAll('input[name="productType"]');
@@ -663,15 +720,21 @@
     const itemCodeSpan = document.getElementById('itemCode');
 
     const serialCatSel = document.getElementById('serialCategory');
-    const drySection = document.getElementById('drySection');
-    const turkeySection = document.getElementById('turkeySection');
+    const feedSection = document.getElementById('feedSection');
+    const tendonSection = document.getElementById('tendonSection');
+    const snackSection = document.getElementById('snackSection');
+    const kcdogSection = document.getElementById('kcdogSection');
+    const cannedSection = document.getElementById('cannedSection');
 
-    const dryPrefix = document.getElementById('dryPrefix');
-    const drySpec = document.getElementById('drySpec');
-
-    const turkeySize = document.getElementById('turkeySize');
-    const turkeyPack = document.getElementById('turkeyPack');
-    const turkeySeq = document.getElementById('turkeySeq');
+    const feedPrefix = document.getElementById('feedPrefix');
+    const feedSpec = document.getElementById('feedSpec');
+    const tendonSize = document.getElementById('tendonSize');
+    const tendonPack = document.getElementById('tendonPack');
+    const snackPrefix = document.getElementById('snackPrefix');
+    const snackWeight = document.getElementById('snackWeight');
+    const kcdogPrefix = document.getElementById('kcdogPrefix');
+    const kcdogWeight = document.getElementById('kcdogWeight');
+    const cannedSerial = document.getElementById('cannedSerial');
 
     function pad(num,len){ return String(num).padStart(len,'0'); }
 
@@ -729,17 +792,43 @@
       seriesCustomWrap.style.display='none';
     }
     function initSerial(){
-      dryPrefix.innerHTML  = dryOptions.map(o=>`<option value="${o.val}">${o.text}</option>`).join('');
-      drySpec.innerHTML    = drySpecs.map(o=>`<option value="${o.val}">${o.text}</option>`).join('');
-      turkeySize.innerHTML = turkeySizes.map(o=>`<option value="${o.val}">${o.text}</option>`).join('');
-      turkeyPack.innerHTML = turkeyPacks.map(o=>`<option value="${o.val}">${o.text}</option>`).join('');
-      turkeySeq.innerHTML  = turkeySeqs.map(o=>`<option value="${o.val}">${o.text}</option>`).join('');
+      if(feedPrefix) feedPrefix.innerHTML = feedPrefixes.map(o=>`<option value="${o.val}">${o.text}</option>`).join('');
+      if(feedSpec) feedSpec.innerHTML = feedSpecs.map(o=>`<option value="${o.val}">${o.text}</option>`).join('');
+      if(tendonSize) tendonSize.innerHTML = tendonSizes.map(o=>`<option value="${o.val}">${o.text}</option>`).join('');
+      if(tendonPack) tendonPack.innerHTML = tendonPacks.map(o=>`<option value="${o.val}">${o.text}</option>`).join('');
+      if(snackPrefix) snackPrefix.innerHTML = snackPrefixes.map(o=>`<option value="${o.val}">${o.text}</option>`).join('');
+      if(snackWeight) snackWeight.innerHTML = snackWeights.map(o=>`<option value="${o.val}">${o.text}</option>`).join('');
+      if(kcdogPrefix) kcdogPrefix.innerHTML = kcdogPrefixes.map(o=>`<option value="${o.val}">${o.text}</option>`).join('');
+      if(kcdogWeight) kcdogWeight.innerHTML = kcdogWeights.map(o=>`<option value="${o.val}">${o.text}</option>`).join('');
+    }
+    function sanitizeCanned(){
+      if(!cannedSerial) return '';
+      const digits = (cannedSerial.value || '').replace(/\D/g,'');
+      if(cannedSerial.value !== digits) cannedSerial.value = digits;
+      return digits;
     }
     function updateSerialValue(){
-      let val='000';
-      if(serialCatSel.value==='dry') val = dryPrefix.value + drySpec.value;
-      else if(serialCatSel.value==='turkey') val = turkeySize.value + turkeyPack.value + turkeySeq.value;
-      serialInput.value = pad(val,3);
+      let val = '000';
+      switch(serialCatSel.value){
+        case 'feed':
+          val = (feedPrefix?.value || '').slice(-2) + (feedSpec?.value || '');
+          break;
+        case 'tendon':
+          val = (tendonSize?.value || '').slice(-2) + (tendonPack?.value || '');
+          break;
+        case 'snack':
+          val = (snackPrefix?.value || '').slice(-2) + (snackWeight?.value || '');
+          break;
+        case 'kcdog':
+          val = (kcdogPrefix?.value || '').slice(-2) + (kcdogWeight?.value || '');
+          break;
+        case 'canned':
+          val = sanitizeCanned();
+          break;
+        default:
+          val = serialInput.value || '000';
+      }
+      serialInput.value = pad(val || '0',3);
     }
     function generateCode(){
       errorMsg.textContent = "";
@@ -849,8 +938,20 @@
 
     // panel展開時，根據品類才展開配方/規格等
     function handleSerialCatSel(){
-      drySection.style.display = serialCatSel.value==='dry'?'block':'none';
-      turkeySection.style.display = serialCatSel.value==='turkey'?'block':'none';
+      const sectionMap = {
+        feed: feedSection,
+        tendon: tendonSection,
+        snack: snackSection,
+        kcdog: kcdogSection,
+        canned: cannedSection
+      };
+      Object.entries(sectionMap).forEach(([key, section])=>{
+        if(!section) return;
+        section.style.display = serialCatSel.value===key ? 'block' : 'none';
+      });
+      if(serialCatSel.value==='canned' && cannedSerial){
+        sanitizeCanned();
+      }
       updateSerialValue();
     }
     // panel套用，寫回主表單流水號並高亮
@@ -877,7 +978,15 @@
       dealerWrap.style.display = !isOutsourced && r.value==='1' ? 'flex' : 'none';
     }));
     serialCatSel.addEventListener('change', handleSerialCatSel);
-    [dryPrefix,drySpec,turkeySize,turkeyPack,turkeySeq].forEach(e=>e.addEventListener('change', updateSerialValue));
+    [feedPrefix,feedSpec,tendonSize,tendonPack,snackPrefix,snackWeight,kcdogPrefix,kcdogWeight]
+      .filter(Boolean)
+      .forEach(e=>e.addEventListener('change', updateSerialValue));
+    if(cannedSerial){
+      cannedSerial.addEventListener('input', ()=>{
+        sanitizeCanned();
+        updateSerialValue();
+      });
+    }
     document.getElementById('applySerialBtn').addEventListener('click', applySerialToForm);
     document.getElementById('generateBtn').addEventListener('click', generateCode);
     document.getElementById('exportBtn').addEventListener('click', exportToExcel);
@@ -890,8 +999,9 @@
     initSerial();
     updateSerialValue();
     // 預設panel隱藏下方區塊
-    drySection.style.display = "none";
-    turkeySection.style.display = "none";
+    [feedSection,tendonSection,snackSection,kcdogSection,cannedSection].forEach(section=>{
+      if(section) section.style.display = 'none';
+    });
     // panel展開/收合時自動聚焦品類
     document.getElementById('serialGen').addEventListener('toggle', e=>{
       if(e.target.open) serialCatSel.focus();
